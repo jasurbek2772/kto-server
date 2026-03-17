@@ -150,4 +150,20 @@ router.post('/:id/photos', upload.array('photos', 10), (req, res) => {
   );
 });
 
+// PUT /api/requests/:id — редактировать заявку (из админки)
+router.put('/:id', (req, res) => {
+  const { category, address, branch, contact_person, deadline, dispatcher, content } = req.body;
+  db.query(
+    `UPDATE requests SET
+      category=?, address=?, branch=?, contact_person=?,
+      deadline=?, dispatcher=?, content=?
+     WHERE id=?`,
+    [category, address, branch, contact_person, deadline || null, dispatcher, content, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    }
+  );
+});
+
 module.exports = router;
