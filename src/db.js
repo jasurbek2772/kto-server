@@ -14,9 +14,9 @@ const db = mysql.createPool({
 // Проверяем подключение при старте
 db.getConnection((err, connection) => {
   if (err) {
-    console.error('❌ Ошибка БД:', err.message);
+    console.error('❌ Ошибка БД:2', err.message);
   } else {
-    console.log('✓ MySQL подключён');
+    console.log('✓ MySQL подключён2');
     connection.release();
   }
 });
