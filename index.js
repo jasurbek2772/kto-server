@@ -21,4 +21,4 @@ app.use('/api/1c', onecRouter);
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'КТО API работает' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT} почему?`));
