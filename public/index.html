@@ -303,28 +303,45 @@ async function addMaster() {
 
 // ── Загрузка заявок ───────────────────────
 async function loadRequests() {
-  const res = await fetch(`${API}/requests`);
-  const data = await res.json();
-  const tbody = document.getElementById('requests-tbody');
+  console.log('Загружаем заявки...');
+  try {
+    const res = await fetch(`${API}/requests`);
+    const data = await res.json();
+    console.log('Получены заявки:', data);
+    
+    const tbody = document.getElementById('requests-tbody');
 
-  document.getElementById('stat-total').textContent = data.length;
-  document.getElementById('stat-free').textContent = data.filter(r => r.status === 'free').length;
-  document.getElementById('stat-done').textContent = data.filter(r => r.status === 'done').length;
+    // Обновляем статистику
+    document.getElementById('stat-total').textContent = data.length;
+    document.getElementById('stat-free').textContent = data.filter(r => r.status === 'free').length;
+    document.getElementById('stat-done').textContent = data.filter(r => r.status === 'done').length;
 
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>';
-    return;
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.map(r => {
+      // Безопасное получение даты
+      const deadline = r.deadline ? new Date(r.deadline).toLocaleDateString('ru-RU') : '—';
+      const masterName = r.master_name || '<span style="color:#475569">не назначен</span>';
+      
+      return `
+      <tr>
+        <td><b style="color:#60a5fa">#${r.number_1c || '—'}</b></td>
+        <td>${r.category || '—'}</td>
+        <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${r.address || '—'}</td>
+        <td>${deadline}</td>
+        <td>${masterName}</td>
+        <td>${statusBadge(r.status)}</td>
+      </tr>
+    `}).join('');
+    
+  } catch (error) {
+    console.error('Ошибка загрузки заявок:', error);
+    document.getElementById('requests-tbody').innerHTML = 
+      '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
   }
-  tbody.innerHTML = data.map(r => `
-    <tr>
-      <td><b style="color:#60a5fa">#${r.number_1c}</b></td>
-      <td>${r.category || '—'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</td>
-      <td>${fmtDate(r.deadline)}</td>
-      <td>${r.master_name || '<span style="color:#475569">не назначен</span>'}</td>
-      <td>${statusBadge(r.status)}</td>
-    </tr>
-  `).join('');
 }
 
 // ── Старт ─────────────────────────────────
