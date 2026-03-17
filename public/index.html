@@ -14,7 +14,7 @@
     .topbar-title { font-size: 16px; font-weight: 600; color: #f1f5f9; }
     .topbar-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
 
-    .container { max-width: 1000px; margin: 0 auto; padding: 28px 20px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
 
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
     .stat-card { background: #1e293b; border-radius: 12px; padding: 16px 18px;
@@ -24,7 +24,7 @@
 
     .section { background: #1e293b; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
     .section-header { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
-                      display: flex; align-items: center; justify-content: space-between; }
+                      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     .section-title { font-size: 14px; font-weight: 500; color: #f1f5f9; }
 
     .tabs { display: flex; gap: 0; margin-bottom: 20px; background: #1e293b;
@@ -33,164 +33,252 @@
            color: #64748b; border: none; background: transparent; transition: all 0.15s; }
     .tab.active { background: #334155; color: #f1f5f9; }
 
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer;
+                  border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #64748b; transition: all 0.15s; }
+    .filter-btn.active { background: #334155; color: #f1f5f9; border-color: #334155; }
+
     table { width: 100%; border-collapse: collapse; }
-    th { font-size: 10px; color: #64748b; text-align: left; padding: 10px 20px;
+    th { font-size: 10px; color: #64748b; text-align: left; padding: 10px 16px;
          text-transform: uppercase; letter-spacing: 0.5px;
          border-bottom: 1px solid rgba(255,255,255,0.06); }
-    td { font-size: 12px; color: #cbd5e1; padding: 12px 20px;
-         border-bottom: 1px solid rgba(255,255,255,0.04); }
+    td { font-size: 12px; color: #cbd5e1; padding: 11px 16px;
+         border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.02); }
+    tr:hover td { background: rgba(255,255,255,0.02); cursor: pointer; }
 
     .badge { display: inline-block; font-size: 10px; padding: 2px 8px;
              border-radius: 20px; font-weight: 500; }
-    .badge-active { background: rgba(74,222,128,0.12); color: #4ade80; }
-    .badge-inactive { background: rgba(248,113,113,0.12); color: #f87171; }
-    .badge-free { background: rgba(96,165,250,0.12); color: #60a5fa; }
-    .badge-taken { background: rgba(251,191,36,0.12); color: #fbbf24; }
-    .badge-done { background: rgba(148,163,184,0.12); color: #94a3b8; }
+    .badge-active  { background: rgba(74,222,128,0.12);  color: #4ade80; }
+    .badge-inactive{ background: rgba(248,113,113,0.12); color: #f87171; }
+    .badge-free    { background: rgba(96,165,250,0.12);  color: #60a5fa; }
+    .badge-taken   { background: rgba(251,191,36,0.12);  color: #fbbf24; }
+    .badge-done    { background: rgba(148,163,184,0.12); color: #94a3b8; }
 
     .btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
            cursor: pointer; border: none; transition: all 0.15s; }
     .btn-primary { background: #3b82f6; color: white; }
     .btn-primary:hover { background: #2563eb; }
-    .btn-danger { background: rgba(248,113,113,0.15); color: #f87171;
-                  border: 1px solid rgba(248,113,113,0.2); }
-    .btn-danger:hover { background: rgba(248,113,113,0.25); }
-    .btn-success { background: rgba(74,222,128,0.15); color: #4ade80;
-                   border: 1px solid rgba(74,222,128,0.2); }
+    .btn-danger  { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+    .btn-danger:hover  { background: rgba(248,113,113,0.25); }
+    .btn-success { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
     .btn-success:hover { background: rgba(74,222,128,0.25); }
+    .btn-ghost   { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+    .btn-ghost:hover   { background: rgba(255,255,255,0.1); }
     .btn-sm { padding: 4px 10px; font-size: 10px; }
 
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-                     align-items: center; justify-content: center; z-index: 100; }
+    /* ── МОДАЛЬНОЕ ОКНО ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+                     align-items: center; justify-content: center; z-index: 100; padding: 20px; }
     .modal-overlay.open { display: flex; }
-    .modal { background: #1e293b; border-radius: 14px; padding: 24px; width: 360px;
-             border: 1px solid rgba(255,255,255,0.1); }
-    .modal-title { font-size: 15px; font-weight: 500; margin-bottom: 18px; color: #f1f5f9; }
+    .modal { background: #1e293b; border-radius: 16px; width: 100%; max-width: 680px;
+             border: 1px solid rgba(255,255,255,0.1); max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
+                    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #1e293b; z-index: 1; }
+    .modal-title { font-size: 15px; font-weight: 600; color: #f1f5f9; }
+    .modal-close { background: none; border: none; color: #64748b; font-size: 20px; cursor: pointer; padding: 0 4px; }
+    .modal-close:hover { color: #f1f5f9; }
+    .modal-body { padding: 20px 24px; }
+
     .field { margin-bottom: 14px; }
-    .field label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 5px; }
-    .field input { width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
-                   border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #e2e8f0;
-                   outline: none; transition: border-color 0.15s; }
-    .field input:focus { border-color: #3b82f6; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .field label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .field input, .field textarea, .field select {
+      width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #e2e8f0;
+      outline: none; transition: border-color 0.15s; font-family: inherit; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: #3b82f6; }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field input[readonly], .field textarea[readonly] {
+      background: rgba(255,255,255,0.03); color: #64748b; cursor: default; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;
+                     padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+    /* ── ФОТО ── */
+    .photos-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .photo-item { position: relative; }
+    .photo-item img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px;
+                      border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: opacity 0.15s; }
+    .photo-item img:hover { opacity: 0.8; }
+    .photo-empty { color: #475569; font-size: 12px; padding: 12px 0; }
+
+    /* ── СТАТУС BAR ── */
+    .status-bar { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+                  display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-free  { background: rgba(74,222,128,0.1);  color: #4ade80; }
+    .status-taken { background: rgba(251,191,36,0.1);  color: #fbbf24; }
+    .status-done  { background: rgba(74,222,128,0.1);  color: #4ade80; }
+
+    /* ── ЛАЙТБОКС ── */
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+                align-items: center; justify-content: center; z-index: 200; }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
+    .lightbox-close { position: absolute; top: 20px; right: 24px; background: none;
+                      border: none; color: white; font-size: 32px; cursor: pointer; }
 
     .toast { position: fixed; bottom: 24px; right: 24px; background: #334155;
              color: #f1f5f9; padding: 12px 18px; border-radius: 10px; font-size: 12px;
-             display: none; border: 1px solid rgba(255,255,255,0.08); z-index: 200; }
+             display: none; border: 1px solid rgba(255,255,255,0.08); z-index: 300; }
     .toast.show { display: block; animation: slideIn 0.2s ease; }
     @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     .empty { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
+    .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 16px 0; }
 
     @media (max-width: 600px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
       .container { padding: 16px 12px; }
+      .field-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- Шапка -->
 <div class="topbar">
   <div>
     <div class="topbar-title">КТО — Панель администратора</div>
     <div class="topbar-sub">Управление мастерами и заявками</div>
   </div>
-  <button class="btn btn-primary" onclick="openAddModal()">+ Добавить мастера</button>
+  <button class="btn btn-primary" onclick="openAddMasterModal()">+ Добавить мастера</button>
 </div>
 
 <div class="container">
 
-  <!-- Статистика -->
   <div class="stats">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-masters">—</div>
-      <div class="stat-label">Мастеров активно</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-total">—</div>
-      <div class="stat-label">Заявок всего</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-free">—</div>
-      <div class="stat-label">Свободных заявок</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-done" style="color:#4ade80">—</div>
-      <div class="stat-label">Выполнено</div>
-    </div>
+    <div class="stat-card"><div class="stat-num" id="stat-masters">—</div><div class="stat-label">Мастеров активно</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Заявок всего</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-free">—</div><div class="stat-label">Свободных заявок</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-done" style="color:#4ade80">—</div><div class="stat-label">Выполнено</div></div>
   </div>
 
-  <!-- Вкладки -->
   <div class="tabs">
     <button class="tab active" onclick="showTab('masters', this)">Мастера</button>
     <button class="tab" onclick="showTab('requests', this)">Заявки</button>
   </div>
 
-  <!-- Таблица мастеров -->
+  <!-- Мастера -->
   <div id="tab-masters" class="section">
     <div class="section-header">
       <div class="section-title">Список мастеров</div>
-      <button class="btn btn-primary btn-sm" onclick="loadMasters()">Обновить</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadMasters()">Обновить</button>
     </div>
     <table>
-      <thead><tr>
-        <th>Мастер</th><th>Телефон</th><th>Код</th><th>Статус</th><th>Действия</th>
-      </tr></thead>
-      <tbody id="masters-tbody">
-        <tr><td colspan="5" class="empty">Загрузка...</td></tr>
-      </tbody>
+      <thead><tr><th>Мастер</th><th>Телефон</th><th>Код</th><th>Статус</th><th>Действия</th></tr></thead>
+      <tbody id="masters-tbody"><tr><td colspan="5" class="empty">Загрузка...</td></tr></tbody>
     </table>
   </div>
 
-  <!-- Таблица заявок -->
+  <!-- Заявки -->
   <div id="tab-requests" class="section" style="display:none">
     <div class="section-header">
       <div class="section-title">Все заявки</div>
-      <button class="btn btn-primary btn-sm" onclick="loadRequests()">Обновить</button>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('all', this)">Все</button>
+        <button class="filter-btn" onclick="setFilter('free', this)">Свободные</button>
+        <button class="filter-btn" onclick="setFilter('taken', this)">В работе</button>
+        <button class="filter-btn" onclick="setFilter('done', this)">Выполненные</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadRequests()">Обновить</button>
+      </div>
     </div>
     <table>
-      <thead><tr>
-        <th>Номер</th><th>Категория</th><th>Адрес</th>
-        <th>Срок</th><th>Мастер</th><th>Статус</th>
-      </tr></thead>
-      <tbody id="requests-tbody">
-        <tr><td colspan="6" class="empty">Загрузка...</td></tr>
-      </tbody>
+      <thead><tr><th>Номер</th><th>Категория</th><th>Адрес</th><th>Срок</th><th>Мастер</th><th>Статус</th></tr></thead>
+      <tbody id="requests-tbody"><tr><td colspan="6" class="empty">Загрузка...</td></tr></tbody>
     </table>
   </div>
 
-</div> <!-- /container -->
+</div>
 
-<!-- Модальное окно: добавить мастера -->
-<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+<!-- ── МОДАЛКА: ДОБАВИТЬ МАСТЕРА ── -->
+<div class="modal-overlay" id="modal-master" onclick="closeModalMaster(event)">
   <div class="modal">
-    <div class="modal-title">Добавить мастера</div>
-    <div class="field">
-      <label>ФИО *</label>
-      <input type="text" id="inp-name" placeholder="Иванов Алексей Петрович">
+    <div class="modal-header">
+      <div class="modal-title">Добавить мастера</div>
+      <button class="modal-close" onclick="closeModalMaster()">×</button>
     </div>
-    <div class="field">
-      <label>Телефон</label>
-      <input type="text" id="inp-phone" placeholder="+7 913 111-22-33">
-    </div>
-    <div class="field">
-      <label>Код (из 1С)</label>
-      <input type="text" id="inp-code" placeholder="019254">
-    </div>
-    <div class="modal-actions">
-      <button class="btn" style="background:#334155;color:#cbd5e1" onclick="closeModal()">Отмена</button>
-      <button class="btn btn-primary" onclick="addMaster()">Добавить</button>
+    <div class="modal-body">
+      <div class="field"><label>ФИО *</label><input type="text" id="inp-name" placeholder="Иванов Алексей Петрович"></div>
+      <div class="field-row">
+        <div class="field"><label>Телефон</label><input type="text" id="inp-phone" placeholder="+7 913 111-22-33"></div>
+        <div class="field"><label>Код (из 1С)</label><input type="text" id="inp-code" placeholder="019254"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModalMaster()">Отмена</button>
+        <button class="btn btn-primary" onclick="addMaster()">Добавить</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Всплывающие уведомления -->
+<!-- ── МОДАЛКА: КАРТОЧКА ЗАЯВКИ ── -->
+<div class="modal-overlay" id="modal-request" onclick="closeModalRequest(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="req-modal-title">Заявка</div>
+      <button class="modal-close" onclick="closeModalRequest()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="req-status-bar" class="status-bar"></div>
+
+      <div class="field-row">
+        <div class="field"><label>Номер заявки</label><input type="text" id="req-number" readonly></div>
+        <div class="field"><label>Категория</label><input type="text" id="req-category"></div>
+      </div>
+      <div class="field"><label>Адрес</label><input type="text" id="req-address"></div>
+      <div class="field-row">
+        <div class="field"><label>Филиал</label><input type="text" id="req-branch"></div>
+        <div class="field"><label>Контактное лицо</label><input type="text" id="req-contact"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Дата поступления</label><input type="text" id="req-date" readonly></div>
+        <div class="field"><label>Срок исполнения</label><input type="text" id="req-deadline"></div>
+      </div>
+      <div class="field"><label>Диспетчер</label><input type="text" id="req-dispatcher"></div>
+      <div class="field"><label>Содержание</label><textarea id="req-content"></textarea></div>
+
+      <div class="divider"></div>
+
+      <!-- Исполнитель -->
+      <div id="req-worker-section" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>Исполнитель</label><input type="text" id="req-master" readonly></div>
+          <div class="field"><label>Взято в работу</label><input type="text" id="req-taken-at" readonly></div>
+        </div>
+        <div class="field" id="req-done-section" style="display:none">
+          <label>Дата выполнения</label><input type="text" id="req-done-at" readonly>
+        </div>
+        <div class="divider"></div>
+      </div>
+
+      <!-- Фотоотчёт -->
+      <div class="field">
+        <label>Фотоотчёт</label>
+        <div class="photos-grid" id="req-photos"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModalRequest()">Закрыть</button>
+        <button class="btn btn-primary" onclick="saveRequest()">Сохранить изменения</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Лайтбокс для фото -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
 <div class="toast" id="toast"></div>
+
 <script>
 const API = 'https://kto-server-production.up.railway.app/api';
+let currentRequestId = null;
+let allRequests = [];
+let currentFilter = 'all';
 
 // ── Утилиты ──────────────────────────────
 function toast(msg, ok = true) {
@@ -203,148 +291,224 @@ function toast(msg, ok = true) {
 
 function fmtDate(d) {
   if (!d) return '—';
+  return new Date(d).toLocaleString('ru-RU');
+}
+
+function fmtShort(d) {
+  if (!d) return '';
   return new Date(d).toLocaleDateString('ru-RU');
 }
 
 function statusBadge(s) {
-  const map = {
-    free:  ['badge-free',  'Свободна'],
-    taken: ['badge-taken', 'В работе'],
-    done:  ['badge-done',  'Выполнено']
-  };
+  const map = { free: ['badge-free','Свободна'], taken: ['badge-taken','В работе'], done: ['badge-done','Выполнено'] };
   const [cls, label] = map[s] || ['badge-done', s];
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
 // ── Вкладки ───────────────────────────────
 function showTab(name, btn) {
-  document.getElementById('tab-masters').style.display = name === 'masters' ? '' : 'none';
+  document.getElementById('tab-masters').style.display  = name === 'masters'  ? '' : 'none';
   document.getElementById('tab-requests').style.display = name === 'requests' ? '' : 'none';
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   if (name === 'requests') loadRequests();
 }
 
-// ── Загрузка мастеров ─────────────────────
+// ── Фильтры заявок ────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRequests();
+}
+
+// ── МАСТЕРА ───────────────────────────────
 async function loadMasters() {
-  const res = await fetch(`${API}/masters/all`);
+  const res  = await fetch(`${API}/masters/all`);
   const data = await res.json();
   const tbody = document.getElementById('masters-tbody');
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>';
-    return;
-  }
-
   document.getElementById('stat-masters').textContent = data.filter(m => m.is_active).length;
+
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>'; return; }
 
   tbody.innerHTML = data.map(m => `
     <tr>
       <td><b style="color:#f1f5f9">${m.full_name}</b></td>
       <td>${m.phone || '—'}</td>
-      <td>${m.code || '—'}</td>
-      <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">
-        ${m.is_active ? 'Активен' : 'Отключён'}</span></td>
+      <td>${m.code  || '—'}</td>
+      <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span></td>
       <td>
         ${m.is_active
-          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id}, 0, '${m.full_name}', '${m.phone||''}', event)">Отключить</button>`
-          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id}, 1, '${m.full_name}', '${m.phone||''}', event)">Включить</button>`
-        }
+          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}',event)">Отключить</button>`
+          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}',event)">Включить</button>`}
       </td>
-    </tr>
-  `).join('');
+    </tr>`).join('');
 }
 
-// ── Активация/деактивация мастера ─────────
 async function toggleMaster(id, active, name, phone, e) {
   e.target.disabled = true;
   await fetch(`${API}/masters/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'PUT', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ full_name: name, phone, is_active: active })
   });
   toast(active ? `${name} активирован` : `${name} отключён`);
   loadMasters();
 }
 
-// ── Модальное окно ────────────────────────
-function openAddModal() {
-  document.getElementById('modal').classList.add('open');
+function openAddMasterModal() {
+  document.getElementById('modal-master').classList.add('open');
   document.getElementById('inp-name').focus();
 }
-function closeModal(e) {
-  if (!e || e.target.id === 'modal') {
-    document.getElementById('modal').classList.remove('open');
-    document.getElementById('inp-name').value = '';
-    document.getElementById('inp-phone').value = '';
-    document.getElementById('inp-code').value = '';
+function closeModalMaster(e) {
+  if (!e || e.target.id === 'modal-master') {
+    document.getElementById('modal-master').classList.remove('open');
+    ['inp-name','inp-phone','inp-code'].forEach(id => document.getElementById(id).value = '');
   }
 }
 
 async function addMaster() {
   const full_name = document.getElementById('inp-name').value.trim();
-  const phone = document.getElementById('inp-phone').value.trim();
-  const code = document.getElementById('inp-code').value.trim();
+  const phone     = document.getElementById('inp-phone').value.trim();
+  const code      = document.getElementById('inp-code').value.trim();
   if (!full_name) { toast('Введите ФИО!', false); return; }
-
   const res = await fetch(`${API}/masters`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ full_name, phone, code })
   });
-  if (res.ok) {
-    toast(`${full_name} добавлен!`);
-    closeModal();
-    loadMasters();
-  } else {
-    toast('Ошибка при добавлении', false);
-  }
+  if (res.ok) { toast(`${full_name} добавлен!`); closeModalMaster(); loadMasters(); }
+  else toast('Ошибка при добавлении', false);
 }
 
-// ── Загрузка заявок ───────────────────────
+// ── ЗАЯВКИ ────────────────────────────────
 async function loadRequests() {
-  console.log('Загружаем заявки...');
   try {
-    const res = await fetch(`${API}/requests`);
-    const data = await res.json();
-    console.log('Получены заявки:', data);
-    
-    const tbody = document.getElementById('requests-tbody');
-
-    // Обновляем статистику
-    document.getElementById('stat-total').textContent = data.length;
-    document.getElementById('stat-free').textContent = data.filter(r => r.status === 'free').length;
-    document.getElementById('stat-done').textContent = data.filter(r => r.status === 'done').length;
-
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>';
-      return;
-    }
-    
-    tbody.innerHTML = data.map(r => {
-      // Безопасное получение даты
-      const deadline = r.deadline ? new Date(r.deadline).toLocaleDateString('ru-RU') : '—';
-      const masterName = r.master_name || '<span style="color:#475569">не назначен</span>';
-      
-      return `
-      <tr>
-        <td><b style="color:#60a5fa">#${r.number_1c || '—'}</b></td>
-        <td>${r.category || '—'}</td>
-        <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${r.address || '—'}</td>
-        <td>${deadline}</td>
-        <td>${masterName}</td>
-        <td>${statusBadge(r.status)}</td>
-      </tr>
-    `}).join('');
-    
-  } catch (error) {
-    console.error('Ошибка загрузки заявок:', error);
-    document.getElementById('requests-tbody').innerHTML = 
-      '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
+    const res  = await fetch(`${API}/requests`);
+    allRequests = await res.json();
+    document.getElementById('stat-total').textContent = allRequests.length;
+    document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
+    document.getElementById('stat-done').textContent  = allRequests.filter(r => r.status === 'done').length;
+    renderRequests();
+  } catch(e) {
+    document.getElementById('requests-tbody').innerHTML = '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
   }
 }
 
-// ── Старт ─────────────────────────────────
+function renderRequests() {
+  const tbody = document.getElementById('requests-tbody');
+  let data = allRequests;
+  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
+
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>'; return; }
+
+  tbody.innerHTML = data.map(r => `
+    <tr onclick="openRequest(${r.id})">
+      <td><b style="color:#60a5fa">#${r.number_1c || '—'}</b></td>
+      <td>${r.category || '—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</td>
+      <td>${fmtShort(r.deadline)}</td>
+      <td>${r.master_name || '<span style="color:#475569">не назначен</span>'}</td>
+      <td>${statusBadge(r.status)}</td>
+    </tr>`).join('');
+}
+
+// ── КАРТОЧКА ЗАЯВКИ ───────────────────────
+async function openRequest(id) {
+  currentRequestId = id;
+  const res  = await fetch(`${API}/requests/${id}`);
+  const r    = await res.json();
+
+  document.getElementById('req-modal-title').textContent = `Заявка #${r.number_1c}`;
+
+  // Статус бар
+  const statusColors = { free: '#4ade80', taken: '#fbbf24', done: '#4ade80' };
+  const statusText   = { free: 'Свободна — мастер не назначен', taken: `В работе у ${r.master_name||'...'}`, done: `Выполнено · ${r.master_name}` };
+  const bar = document.getElementById('req-status-bar');
+  bar.className = `status-bar status-${r.status}`;
+  bar.innerHTML = `<div class="status-dot" style="background:${statusColors[r.status]}"></div>${statusText[r.status]}`;
+
+  // Поля
+  document.getElementById('req-number').value   = r.number_1c  || '';
+  document.getElementById('req-category').value = r.category   || '';
+  document.getElementById('req-address').value  = r.address    || '';
+  document.getElementById('req-branch').value   = r.branch     || '';
+  document.getElementById('req-contact').value  = r.contact_person || '';
+  document.getElementById('req-date').value     = fmtDate(r.date_received);
+  document.getElementById('req-deadline').value = fmtShort(r.deadline);
+  document.getElementById('req-dispatcher').value = r.dispatcher || '';
+  document.getElementById('req-content').value  = r.content    || '';
+
+  // Исполнитель
+  const workerSection = document.getElementById('req-worker-section');
+  if (r.status !== 'free') {
+    workerSection.style.display = '';
+    document.getElementById('req-master').value   = r.master_name || '—';
+    document.getElementById('req-taken-at').value = fmtDate(r.taken_at);
+    const doneSection = document.getElementById('req-done-section');
+    if (r.done_at) {
+      doneSection.style.display = '';
+      document.getElementById('req-done-at').value = fmtDate(r.done_at);
+    } else {
+      doneSection.style.display = 'none';
+    }
+  } else {
+    workerSection.style.display = 'none';
+  }
+
+  // Фото
+  const photosGrid = document.getElementById('req-photos');
+  if (r.photos && r.photos.length > 0) {
+    const baseUrl = API.replace('/api', '');
+    photosGrid.innerHTML = r.photos.map(p => `
+      <div class="photo-item">
+        <img src="${baseUrl}/uploads/${p.filename}"
+             alt="фото"
+             onclick="openLightbox('${baseUrl}/uploads/${p.filename}')"
+             onerror="this.style.display='none'">
+      </div>`).join('');
+  } else {
+    photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>';
+  }
+
+  document.getElementById('modal-request').classList.add('open');
+}
+
+async function saveRequest() {
+  if (!currentRequestId) return;
+  const body = {
+    category:       document.getElementById('req-category').value,
+    address:        document.getElementById('req-address').value,
+    branch:         document.getElementById('req-branch').value,
+    contact_person: document.getElementById('req-contact').value,
+    deadline:       document.getElementById('req-deadline').value,
+    dispatcher:     document.getElementById('req-dispatcher').value,
+    content:        document.getElementById('req-content').value,
+  };
+  const res = await fetch(`${API}/requests/${currentRequestId}`, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if (res.ok) { toast('Заявка сохранена!'); loadRequests(); }
+  else toast('Ошибка при сохранении', false);
+}
+
+function closeModalRequest(e) {
+  if (!e || e.target.id === 'modal-request') {
+    document.getElementById('modal-request').classList.remove('open');
+    currentRequestId = null;
+  }
+}
+
+// ── ЛАЙТБОКС ────────────────────────────
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+// ── СТАРТ ────────────────────────────────
 loadMasters();
 </script>
-</body></html>
+</body>
+</html>
