@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
-require('./src/db'); // запускает проверку подключения
+
+// Проверяем БД перед запуском сервера
+const db = require('./src/db');
 
 const mastersRouter = require('./src/routes/masters');
 const requestsRouter = require('./src/routes/requests');
@@ -21,4 +23,14 @@ app.use('/api/1c', onecRouter);
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'КТО API работает' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT} почему?`));
+
+// Запускаем сервер только если БД подключилась
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error('❌ Критическая ошибка: сервер не запущен из-за проблем с БД');
+    process.exit(1);
+  } else {
+    connection.release();
+    app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT}`));
+  }
+});
