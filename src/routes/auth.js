@@ -19,8 +19,11 @@ router.post('/login', (req, res) => {
       if (!rows.length)  return res.status(401).json({ error: 'Неверный логин или пароль' });
 
       const admin = rows[0];
-      const valid = await bcrypt.compare(password, admin.password_hash);
-      if (!valid) return res.status(401).json({ error: 'Неверный логин или пароль' });
+      // ВРЕМЕННО: прямое сравнение паролей
+if (password !== admin.password_hash) {
+    return res.status(401).json({ error: 'Неверный логин или пароль' });
+}
+// УБРАТЬ ПОСЛЕ ОТЛАДКИ!
 
       const token = jwt.sign(
         { id: admin.id, username: admin.username },
