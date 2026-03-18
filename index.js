@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Статичные файлы
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+//app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Страница логина — публичная
 app.use('/login', express.static(path.join(__dirname, 'public/login')));
