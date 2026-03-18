@@ -358,11 +358,18 @@ async function loadMasters() {
 
   if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>'; return; }
 
-  tbody.innerHTML = data.map(m => `
+  tbody.innerHTML = data.map(m => {
+    // Формируем правильный путь к фото
+    // Если в базе лежит 'имя.jpg', добавим к нему префикс /api/photo/
+    const photoSrc = m.photo_url 
+      ? `/api/photo/${m.photo_url}` 
+      : 'https://via.placeholder.com/40';
+
+    return `
     <tr>
       <td>
         <div style="display:flex; align-items:center; gap:10px">
-          <img src="${m.photo_url || 'https://via.placeholder.com/40'}" class="master-avatar-circle">
+          <img src="${photoSrc}" class="master-avatar-circle" onerror="this.src='https://via.placeholder.com/40'">
           <b style="color:#f1f5f9">${m.full_name}</b>
         </div>
       </td>
@@ -374,7 +381,8 @@ async function loadMasters() {
           ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}',event)">Отключить</button>`
           : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}',event)">Включить</button>`}
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function toggleMaster(id, active, name, phone, e) {

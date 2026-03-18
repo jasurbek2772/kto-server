@@ -15,8 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 // Статичные файлы
-//app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+// Позволяет открывать файлы по адресу /api/photo/...
+app.use('/api/photo', express.static(path.join(__dirname, 'uploads')));
 // Страница логина — публичная
 app.use('/login', express.static(path.join(__dirname, 'public/login')));
 app.get('/login', (req, res) => {
