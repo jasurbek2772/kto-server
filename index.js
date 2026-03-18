@@ -1,36 +1,44 @@
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
+const cors    = require('cors');
+const path    = require('path');
 require('dotenv').config();
+require('./src/db');
 
-// Проверяем БД перед запуском сервера
-const db = require('./src/db');
-
-const mastersRouter = require('./src/routes/masters');
+const mastersRouter  = require('./src/routes/masters');
 const requestsRouter = require('./src/routes/requests');
-const onecRouter = require('./src/routes/onec');
+const onecRouter     = require('./src/routes/onec');
+const authRouter     = require('./src/routes/auth');
+const authMiddleware = require('./src/middleware/auth');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Статичные файлы
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Страница логина — публичная
+app.use('/login', express.static(path.join(__dirname, 'public/login')));
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/login/index.html'));
+});
+
+// Защищённая админка — отдаём HTML, проверку делает JS
 app.use('/admin', express.static(path.join(__dirname, 'public')));
 
-app.use('/api/masters', mastersRouter);
+// API — авторизация публичная
+app.use('/api/auth', authRouter);
+
+// API — мастера и заявки защищены (мобильное приложение использует без токена)
+app.use('/api/masters',  mastersRouter);
 app.use('/api/requests', requestsRouter);
-app.use('/api/1c', onecRouter);
+app.use('/api/1c',       onecRouter);
+
+// Защищённые роуты только для админки
+app.use('/api/admin/masters',  authMiddleware, mastersRouter);
+app.use('/api/admin/requests', authMiddleware, requestsRouter);
 
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'КТО API работает' }));
 
-const PORT = process.env.PORT || 3000;
-
-// Запускаем сервер только если БД подключилась
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error('❌ Критическая ошибка: сервер не запущен из-за проблем с БД');
-    process.exit(1);
-  } else {
-    connection.release();
-    app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT}`));
-  }
-});
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT}`));
