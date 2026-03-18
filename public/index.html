@@ -526,7 +526,14 @@ async function saveRequest() {
     address: document.getElementById('req-address').value,
     branch: document.getElementById('req-branch').value,
     contact_person: document.getElementById('req-contact').value,
-    deadline: document.getElementById('req-deadline').value,
+    deadline: (() => {
+  const v = document.getElementById('req-deadline').value;
+  if (!v) return null;
+  // Конвертируем DD.MM.YYYY → YYYY-MM-DD
+  const parts = v.split('.');
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  return v;
+})(),
     dispatcher: document.getElementById('req-dispatcher').value,
     content: document.getElementById('req-content').value,
   };
