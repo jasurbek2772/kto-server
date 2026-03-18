@@ -34,7 +34,7 @@ router.post('/', (req, res) => {
     }
   );
 });
-
+//новая
 router.put('/:id', (req, res) => {
   const { full_name, phone, is_active } = req.body;
   db.query(
