@@ -6,6 +6,7 @@ const db       = require('../db');
 // POST /api/auth/login
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
+  
   if (!username || !password) {
     return res.status(400).json({ error: 'Введите логин и пароль' });
   }
@@ -14,19 +15,24 @@ router.post('/login', (req, res) => {
     'SELECT * FROM admins WHERE username = ?',
     [username],
     (err, rows) => {
-      if (err)           return res.status(500).json({ error: err.message });
-      if (!rows.length)  return res.status(401).json({ error: 'Неверный логин или пароль' });
+      if (err) return res.status(500).json({ error: err.message });
+      
+      // Если пользователя нет
+      if (!rows.length) {
+        return res.status(401).json({ error: 'Неверный логин или пароль' });
+      }
 
       const admin = rows[0];
-      
-      // ПРЯМОЕ СРАВНЕНИЕ ВМЕСТО BCRYPT
+
+      // ПРЯМОЕ СРАВНЕНИЕ ТЕКСТА (пароль из базы должен быть равен паролю из запроса)
       if (password !== admin.password_hash) {
         return res.status(401).json({ error: 'Неверный логин или пароль' });
       }
 
+      // Если всё ок — создаём токен
       const token = jwt.sign(
         { id: admin.id, username: admin.username },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'super-secret-key', // Фоллбэк если переменная не задана
         { expiresIn: '7d' }
       );
 
@@ -35,20 +41,15 @@ router.post('/login', (req, res) => {
   );
 });
 
-// POST /api/auth/register
+// Регистрация без хеширования
 router.post('/register', (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Введите логин и пароль' });
-  }
-
-  // СОХРАНЯЕМ ПАРОЛЬ КАК ЕСТЬ
   db.query(
     'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
     [username, password],
-    (err, result) => {
+    (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id: result.insertId, username });
+      res.status(201).json({ status: 'создан' });
     }
   );
 });
