@@ -1,6 +1,6 @@
 const express  = require('express');
 const router   = express.Router();
-const jwt      = require('jsonwebtoken');
+const jwt      = require('jsonwebtoken'); // bcrypt больше не нужен
 const db       = require('../db');
 
 // POST /api/auth/login
@@ -18,8 +18,8 @@ router.post('/login', (req, res) => {
       if (!rows.length) return res.status(401).json({ error: 'Неверный логин или пароль' });
 
       const admin = rows[0];
-      
-      // Простое сравнение строк вместо bcrypt.compare
+
+      // ПРЯМОЕ СРАВНЕНИЕ СТРОК (без bcrypt)
       if (password !== admin.password_hash) {
         return res.status(401).json({ error: 'Неверный логин или пароль' });
       }
@@ -31,24 +31,6 @@ router.post('/login', (req, res) => {
       );
 
       res.json({ token, username: admin.username });
-    }
-  );
-});
-
-// POST /api/auth/register
-router.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Введите логин и пароль' });
-  }
-
-  // Сохраняем пароль как есть, без хеширования
-  db.query(
-    'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
-    [username, password],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id: result.insertId, username });
     }
   );
 });
