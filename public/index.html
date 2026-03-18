@@ -196,6 +196,7 @@
   </div>
 </div>
 
+<!-- Модалка: добавить мастера -->
 <div class="modal-overlay" id="modal-master" onclick="closeModalMaster(event)">
   <div class="modal">
     <div class="modal-header">
@@ -215,6 +216,54 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModalMaster()">Отмена</button>
         <button class="btn btn-primary" id="btn-save-master" onclick="addMaster()">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка: редактировать мастера -->
+<div class="modal-overlay" id="modal-edit-master" onclick="closeEditMasterModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактировать мастера</div>
+      <button class="modal-close" onclick="closeEditMasterModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-master-id">
+
+      <!-- Фото -->
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+        <img id="edit-master-photo"
+             src="https://via.placeholder.com/64"
+             style="width:64px; height:64px; border-radius:50%; object-fit:cover;
+                    border:2px solid rgba(255,255,255,0.1);"
+             onerror="this.src='https://via.placeholder.com/64'">
+        <div>
+          <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Фото мастера</div>
+          <input type="file" id="edit-master-photo-file" accept="image/*"
+                 style="font-size:11px; color:#94a3b8;">
+        </div>
+      </div>
+
+      <div class="field"><label>ФИО *</label><input type="text" id="edit-master-name" placeholder="Иванов Алексей Петрович"></div>
+      <div class="field-row">
+        <div class="field"><label>Телефон</label><input type="text" id="edit-master-phone" placeholder="+7 913 111-22-33"></div>
+        <div class="field"><label>Код (из 1С)</label><input type="text" id="edit-master-code" placeholder="019254"></div>
+      </div>
+      <div class="field">
+        <label>Статус</label>
+        <select id="edit-master-active"
+                style="width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                       border-radius:8px; padding:9px 12px; font-size:13px; color:#e2e8f0;
+                       outline:none;">
+          <option value="1">Активен</option>
+          <option value="0">Отключён</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeEditMasterModal()">Отмена</button>
+        <button class="btn btn-primary" id="btn-update-master" onclick="updateMaster()">Сохранить</button>
       </div>
     </div>
   </div>
@@ -359,12 +408,7 @@ async function loadMasters() {
   if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>'; return; }
 
   tbody.innerHTML = data.map(m => {
-    // Формируем правильный путь к фото
-    // Если в базе лежит 'имя.jpg', добавим к нему префикс /api/photo/
-    const photoSrc = m.photo_url 
-      ? `/api/photo/${m.photo_url}` 
-      : 'https://via.placeholder.com/40';
-
+    const photoSrc = m.photo_url || 'https://via.placeholder.com/40';
     return `
     <tr>
       <td>
@@ -376,20 +420,88 @@ async function loadMasters() {
       <td>${m.phone || '—'}</td>
       <td>${m.code  || '—'}</td>
       <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span></td>
-      <td>
+      <td style="display:flex; gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick='openEditMasterModal(${JSON.stringify(m)})'>Изменить</button>
         ${m.is_active
-          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}',event)">Отключить</button>`
-          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}',event)">Включить</button>`}
+          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}','${m.code||''}',event)">Откл.</button>`
+          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}','${m.code||''}',event)">Вкл.</button>`}
       </td>
     </tr>`;
   }).join('');
 }
 
-async function toggleMaster(id, active, name, phone, e) {
+// Открыть модалку редактирования
+function openEditMasterModal(m) {
+  document.getElementById('edit-master-id').value       = m.id;
+  document.getElementById('edit-master-name').value     = m.full_name || '';
+  document.getElementById('edit-master-phone').value    = m.phone || '';
+  document.getElementById('edit-master-code').value     = m.code || '';
+  document.getElementById('edit-master-active').value   = m.is_active ? '1' : '0';
+  document.getElementById('edit-master-photo').src      = m.photo_url || 'https://via.placeholder.com/64';
+  document.getElementById('edit-master-photo-file').value = '';
+  document.getElementById('modal-edit-master').classList.add('open');
+}
+
+function closeEditMasterModal(e) {
+  if (!e || e.target.id === 'modal-edit-master') {
+    document.getElementById('modal-edit-master').classList.remove('open');
+  }
+}
+
+// Сохранить изменения мастера
+async function updateMaster() {
+  const id        = document.getElementById('edit-master-id').value;
+  const full_name = document.getElementById('edit-master-name').value.trim();
+  const phone     = document.getElementById('edit-master-phone').value.trim();
+  const code      = document.getElementById('edit-master-code').value.trim();
+  const is_active = parseInt(document.getElementById('edit-master-active').value);
+  const photoFile = document.getElementById('edit-master-photo-file').files[0];
+
+  if (!full_name) { toast('Введите ФИО!', false); return; }
+
+  const btn = document.getElementById('btn-update-master');
+  btn.disabled = true; btn.textContent = 'Сохраняем...';
+
+  // Сохраняем данные
+  const res = await apiFetch(`${API}/masters/${id}`, {
+    method: 'PUT',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ full_name, phone, code, is_active })
+  });
+
+  if (!res || !res.ok) {
+    toast('Ошибка при сохранении', false);
+    btn.disabled = false; btn.textContent = 'Сохранить';
+    return;
+  }
+
+  // Загружаем фото если выбрано
+  if (photoFile) {
+    btn.textContent = 'Загружаем фото...';
+    const formData = new FormData();
+    formData.append('photo', photoFile);
+    const photoRes = await apiFetch(`${API}/masters/${id}/photo`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData
+    });
+    if (photoRes && photoRes.ok) {
+      const data = await photoRes.json();
+      document.getElementById('edit-master-photo').src = data.photo_url;
+    }
+  }
+
+  toast(`${full_name} сохранён!`);
+  closeEditMasterModal();
+  loadMasters();
+  btn.disabled = false; btn.textContent = 'Сохранить';
+}
+
+async function toggleMaster(id, active, name, phone, code, e) {
   e.target.disabled = true;
   await apiFetch(`${API}/masters/${id}`, {
     method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name: name, phone, is_active: active })
+    body: JSON.stringify({ full_name: name, phone, code, is_active: active })
   });
   toast(active ? `${name} активирован` : `${name} отключён`);
   loadMasters();
@@ -406,45 +518,28 @@ function closeModalMaster(e) {
 }
 
 async function addMaster() {
-  const full_name = document.getElementById('inp-name').value.trim();
-  const phone     = document.getElementById('inp-phone').value.trim();
-  const code      = document.getElementById('inp-code').value.trim();
+  const name = document.getElementById('inp-name').value.trim();
   const photoFile = document.getElementById('inp-photo').files[0];
-  if (!full_name) { toast('Введите ФИО!', false); return; }
+  if (!name) return alert('Введите ФИО!');
 
   const btn = document.getElementById('btn-save-master');
-  btn.disabled = true; btn.textContent = 'Сохраняем...';
+  btn.disabled = true; btn.textContent = 'Загрузка...';
 
-  // Шаг 1 — создаём мастера
-  const res = await apiFetch(`${API}/masters`, {
+  const formData = new FormData();
+  formData.append('full_name', name);
+  formData.append('phone', document.getElementById('inp-phone').value);
+  formData.append('code', document.getElementById('inp-code').value);
+  if (photoFile) formData.append('photo', photoFile);
+
+  const res = await fetch(`${API}/masters`, {
     method: 'POST',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name, phone, code })
+    headers: authHeaders(), // Автоматически поставит multipart/form-data
+    body: formData
   });
 
-  if (!res || !res.ok) {
-    toast('Ошибка при добавлении', false);
-    btn.disabled = false; btn.textContent = 'Добавить';
-    return;
-  }
-
-  const master = await res.json();
-
-  // Шаг 2 — загружаем фото если выбрано
-  if (photoFile) {
-    btn.textContent = 'Загружаем фото...';
-    const formData = new FormData();
-    formData.append('photo', photoFile);
-    await apiFetch(`${API}/masters/${master.id}/photo`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: formData
-    });
-  }
-
-  toast(`${full_name} добавлен!`);
-  closeModalMaster();
-  loadMasters();
+  if (res.ok) { toast(`${name} добавлен!`); closeModalMaster(); loadMasters(); }
+  else toast('Ошибка при добавлении', false);
+  
   btn.disabled = false; btn.textContent = 'Добавить';
 }
 
@@ -543,14 +638,7 @@ async function saveRequest() {
     address: document.getElementById('req-address').value,
     branch: document.getElementById('req-branch').value,
     contact_person: document.getElementById('req-contact').value,
-    deadline: (() => {
-  const v = document.getElementById('req-deadline').value;
-  if (!v) return null;
-  // Конвертируем DD.MM.YYYY → YYYY-MM-DD
-  const parts = v.split('.');
-  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
-  return v;
-})(),
+    deadline: document.getElementById('req-deadline').value,
     dispatcher: document.getElementById('req-dispatcher').value,
     content: document.getElementById('req-content').value,
   };

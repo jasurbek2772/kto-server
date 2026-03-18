@@ -4,7 +4,6 @@ const db         = require('../db');
 const multer     = require('multer');
 const cloudinary = require('../cloudinary');
 
-// Multer — в память
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -42,11 +41,10 @@ router.get('/all', (req, res) => {
   );
 });
 
-// POST /api/masters — добавить мастера (JSON, без фото)
+// POST /api/masters — добавить мастера
 router.post('/', (req, res) => {
   const { full_name, code, phone } = req.body;
   if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
-
   db.query(
     'INSERT INTO masters (full_name, code, phone) VALUES (?, ?, ?)',
     [full_name, code || null, phone || null],
@@ -57,10 +55,9 @@ router.post('/', (req, res) => {
   );
 });
 
-// POST /api/masters/:id/photo — загрузить фото мастера
+// POST /api/masters/:id/photo — загрузить/обновить фото мастера
 router.post('/:id/photo', upload.single('photo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Файл не передан' });
-
   try {
     const result = await uploadToCloudinary(req.file.buffer, 'masters');
     db.query(
@@ -76,12 +73,12 @@ router.post('/:id/photo', upload.single('photo'), async (req, res) => {
   }
 });
 
-// PUT /api/masters/:id — изменить или деактивировать
+// PUT /api/masters/:id — изменить данные мастера
 router.put('/:id', (req, res) => {
-  const { full_name, phone, is_active } = req.body;
+  const { full_name, phone, code, is_active } = req.body;
   db.query(
-    'UPDATE masters SET full_name=?, phone=?, is_active=? WHERE id=?',
-    [full_name, phone, is_active, req.params.id],
+    'UPDATE masters SET full_name=?, phone=?, code=?, is_active=? WHERE id=?',
+    [full_name, phone, code, is_active, req.params.id],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
