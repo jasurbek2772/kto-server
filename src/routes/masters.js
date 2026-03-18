@@ -1,10 +1,29 @@
-const express = require('express');
-const router  = express.Router();
-const db      = require('../db');
+const express    = require('express');
+const router     = express.Router();
+const db         = require('../db');
+const multer     = require('multer');
+const cloudinary = require('../cloudinary');
 
+// Multer — в память
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+function uploadToCloudinary(buffer, folder) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: `kto/${folder}`, resource_type: 'image' },
+      (error, result) => { if (error) reject(error); else resolve(result); }
+    );
+    stream.end(buffer);
+  });
+}
+
+// GET /api/masters — только активные
 router.get('/', (req, res) => {
   db.query(
-    'SELECT id, full_name, code, phone FROM masters WHERE is_active = 1 ORDER BY full_name',
+    'SELECT id, full_name, code, phone, photo_url FROM masters WHERE is_active = 1 ORDER BY full_name',
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
@@ -12,9 +31,10 @@ router.get('/', (req, res) => {
   );
 });
 
+// GET /api/masters/all — все мастера
 router.get('/all', (req, res) => {
   db.query(
-    'SELECT id, full_name, code, phone, is_active FROM masters ORDER BY full_name',
+    'SELECT id, full_name, code, phone, photo_url, is_active FROM masters ORDER BY full_name',
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
@@ -22,9 +42,11 @@ router.get('/all', (req, res) => {
   );
 });
 
+// POST /api/masters — добавить мастера (JSON, без фото)
 router.post('/', (req, res) => {
   const { full_name, code, phone } = req.body;
   if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
+
   db.query(
     'INSERT INTO masters (full_name, code, phone) VALUES (?, ?, ?)',
     [full_name, code || null, phone || null],
@@ -34,7 +56,27 @@ router.post('/', (req, res) => {
     }
   );
 });
-//новая
+
+// POST /api/masters/:id/photo — загрузить фото мастера
+router.post('/:id/photo', upload.single('photo'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Файл не передан' });
+
+  try {
+    const result = await uploadToCloudinary(req.file.buffer, 'masters');
+    db.query(
+      'UPDATE masters SET photo_url = ? WHERE id = ?',
+      [result.secure_url, req.params.id],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, photo_url: result.secure_url });
+      }
+    );
+  } catch (e) {
+    res.status(500).json({ error: 'Ошибка Cloudinary: ' + e.message });
+  }
+});
+
+// PUT /api/masters/:id — изменить или деактивировать
 router.put('/:id', (req, res) => {
   const { full_name, phone, is_active } = req.body;
   db.query(
