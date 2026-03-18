@@ -1,43 +1,55 @@
 const express = require('express');
-const router = express.Router();
-const db = require('../db');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const router  = express.Router();
+const db      = require('../db');
 
-// Проверяем, существует ли папка, если нет — создаем
-const uploadDir = 'uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
-
-// Настройка хранилища
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    // Делаем уникальное имя: timestamp + случайное число
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+// GET /api/masters — только активные (для мобильного приложения)
+router.get('/', (req, res) => {
+  db.query(
+    'SELECT id, full_name, code, phone FROM masters WHERE is_active = 1 ORDER BY full_name',
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
 });
 
-const upload = multer({ storage: storage });
+// GET /api/masters/all — все мастера включая отключённых (для админки)
+router.get('/all', (req, res) => {
+  db.query(
+    'SELECT id, full_name, code, phone, is_active FROM masters ORDER BY full_name',
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
+});
 
-// РОУТ: Добавление мастера
-router.post('/', upload.single('photo'), (req, res) => {
-  const { full_name, phone, code } = req.body;
-  
-  // Формируем путь, который сохранится в базу
-  // Будет сохранено имя файла, например: 1773816123179-331012675.jpg
-  const fileName = req.file ? req.file.filename : null;
+// POST /api/masters — добавить мастера
+router.post('/', (req, res) => {
+  const { full_name, code, phone } = req.body;
+  if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
 
-  const sql = 'INSERT INTO masters (full_name, phone, code, photo_url, is_active) VALUES (?, ?, ?, ?, 1)';
-  db.query(sql, [full_name, phone, code, fileName], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: result.insertId, fileName });
-  });
+  db.query(
+    'INSERT INTO masters (full_name, code, phone) VALUES (?, ?, ?)',
+    [full_name, code || null, phone || null],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id: result.insertId, full_name, code, phone });
+    }
+  );
+});
+
+// PUT /api/masters/:id — изменить или деактивировать
+router.put('/:id', (req, res) => {
+  const { full_name, phone, is_active } = req.body;
+  db.query(
+    'UPDATE masters SET full_name=?, phone=?, is_active=? WHERE id=?',
+    [full_name, phone, is_active, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    }
+  );
 });
 
 module.exports = router;

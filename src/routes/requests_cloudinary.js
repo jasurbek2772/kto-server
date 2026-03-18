@@ -1,22 +1,31 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../db');
-const multer = require('multer');
-const path = require('path');
+const express    = require('express');
+const router     = express.Router();
+const db         = require('../db');
+const multer     = require('multer');
+const cloudinary = require('../cloudinary');
 
-// Настройка загрузки фото
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  }
+// Multer — храним в памяти, потом сразу в Cloudinary
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // макс 10МБ
 });
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } }); // макс 10МБ
+
+// Загрузить буфер в Cloudinary
+function uploadToCloudinary(buffer, requestId) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: `kto/request_${requestId}`, resource_type: 'image' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+}
 
 // ─────────────────────────────────────────
 // GET /api/requests — список всех заявок
-// ?status=free|taken|done — фильтр по статусу
 // ─────────────────────────────────────────
 router.get('/', (req, res) => {
   let sql = `
@@ -25,12 +34,10 @@ router.get('/', (req, res) => {
     LEFT JOIN masters m ON r.master_id = m.id
   `;
   const params = [];
-
   if (req.query.status) {
     sql += ' WHERE r.status = ?';
     params.push(req.query.status);
   }
-
   sql += ' ORDER BY r.date_received DESC';
 
   db.query(sql, params, (err, results) => {
@@ -50,14 +57,12 @@ router.get('/:id', (req, res) => {
      WHERE r.id = ?`,
     [req.params.id],
     (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err)          return res.status(500).json({ error: err.message });
       if (!rows.length) return res.status(404).json({ error: 'Заявка не найдена' });
 
       const request = rows[0];
-
-      // Подгружаем фото к заявке
       db.query(
-        'SELECT id, filename, uploaded_at FROM photos WHERE request_id = ?',
+        'SELECT id, filename, url, uploaded_at FROM photos WHERE request_id = ?',
         [req.params.id],
         (err2, photos) => {
           if (err2) return res.status(500).json({ error: err2.message });
@@ -70,16 +75,14 @@ router.get('/:id', (req, res) => {
 });
 
 // ─────────────────────────────────────────
-// POST /api/requests/:id/take — взять заявку
-// body: { master_id: 5 }
+// POST /api/requests/:id/take
 // ─────────────────────────────────────────
 router.post('/:id/take', (req, res) => {
   const { master_id } = req.body;
   if (!master_id) return res.status(400).json({ error: 'master_id обязателен' });
 
-  // Проверяем что заявка ещё свободна
   db.query('SELECT status FROM requests WHERE id = ?', [req.params.id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err)          return res.status(500).json({ error: err.message });
     if (!rows.length) return res.status(404).json({ error: 'Заявка не найдена' });
     if (rows[0].status !== 'free') return res.status(409).json({ error: 'Заявка уже взята' });
 
@@ -95,7 +98,7 @@ router.post('/:id/take', (req, res) => {
 });
 
 // ─────────────────────────────────────────
-// POST /api/requests/:id/return — вернуть в буфер
+// POST /api/requests/:id/return
 // ─────────────────────────────────────────
 router.post('/:id/return', (req, res) => {
   db.query(
@@ -110,7 +113,7 @@ router.post('/:id/return', (req, res) => {
 });
 
 // ─────────────────────────────────────────
-// POST /api/requests/:id/done — отметить выполненной
+// POST /api/requests/:id/done
 // ─────────────────────────────────────────
 router.post('/:id/done', (req, res) => {
   db.query(
@@ -125,32 +128,8 @@ router.post('/:id/done', (req, res) => {
 });
 
 // ─────────────────────────────────────────
-// POST /api/requests/:id/photos — загрузить фото
-// form-data: photos (можно несколько файлов)
+// PUT /api/requests/:id — редактировать (из админки)
 // ─────────────────────────────────────────
-router.post('/:id/photos', upload.array('photos', 10), (req, res) => {
-  const files = req.files;
-  if (!files || files.length === 0) {
-    return res.status(400).json({ error: 'Файлы не переданы' });
-  }
-
-  const values = files.map(f => [req.params.id, f.filename]);
-
-  db.query(
-    'INSERT INTO photos (request_id, filename) VALUES ?',
-    [values],
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({
-        success: true,
-        uploaded: files.length,
-        files: files.map(f => f.filename)
-      });
-    }
-  );
-});
-
-// PUT /api/requests/:id — редактировать заявку (из админки)
 router.put('/:id', (req, res) => {
   const { category, address, branch, contact_person, deadline, dispatcher, content } = req.body;
   db.query(
@@ -164,6 +143,45 @@ router.put('/:id', (req, res) => {
       res.json({ success: true });
     }
   );
+});
+
+// ─────────────────────────────────────────
+// POST /api/requests/:id/photos — загрузить фото в Cloudinary
+// ─────────────────────────────────────────
+router.post('/:id/photos', upload.array('photos', 10), async (req, res) => {
+  const files = req.files;
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: 'Файлы не переданы' });
+  }
+
+  try {
+    const uploaded = [];
+
+    for (const file of files) {
+      const result = await uploadToCloudinary(file.buffer, req.params.id);
+      uploaded.push({
+        request_id: req.params.id,
+        filename:   result.public_id,
+        url:        result.secure_url,
+      });
+    }
+
+    const values = uploaded.map(f => [f.request_id, f.filename, f.url]);
+    db.query(
+      'INSERT INTO photos (request_id, filename, url) VALUES ?',
+      [values],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({
+          success:  true,
+          uploaded: uploaded.length,
+          files:    uploaded.map(f => f.url),
+        });
+      }
+    );
+  } catch (e) {
+    res.status(500).json({ error: 'Ошибка Cloudinary: ' + e.message });
+  }
 });
 
 module.exports = router;

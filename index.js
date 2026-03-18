@@ -5,7 +5,7 @@ require('dotenv').config();
 require('./src/db');
 
 const mastersRouter  = require('./src/routes/masters');
-const requestsRouter = require('./src/routes/requests');
+const requestsRouter = require('./src/routes/requests_cloudinary');
 const onecRouter     = require('./src/routes/onec');
 const authRouter     = require('./src/routes/auth');
 const authMiddleware = require('./src/routes/middleware/auth_middleware');
