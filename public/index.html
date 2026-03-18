@@ -11,8 +11,12 @@
 
     .topbar { background: #1e293b; border-bottom: 1px solid rgba(255,255,255,0.06);
               padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
     .topbar-title { font-size: 16px; font-weight: 600; color: #f1f5f9; }
     .topbar-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .admin-chip { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25);
+                  border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #60a5fa; }
 
     .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
 
@@ -45,15 +49,14 @@
     td { font-size: 12px; color: #cbd5e1; padding: 11px 16px;
          border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.02); cursor: pointer; }
+    tr.clickable:hover td { background: rgba(255,255,255,0.02); cursor: pointer; }
 
-    .badge { display: inline-block; font-size: 10px; padding: 2px 8px;
-             border-radius: 20px; font-weight: 500; }
-    .badge-active  { background: rgba(74,222,128,0.12);  color: #4ade80; }
-    .badge-inactive{ background: rgba(248,113,113,0.12); color: #f87171; }
-    .badge-free    { background: rgba(96,165,250,0.12);  color: #60a5fa; }
-    .badge-taken   { background: rgba(251,191,36,0.12);  color: #fbbf24; }
-    .badge-done    { background: rgba(148,163,184,0.12); color: #94a3b8; }
+    .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+    .badge-active   { background: rgba(74,222,128,0.12);  color: #4ade80; }
+    .badge-inactive { background: rgba(248,113,113,0.12); color: #f87171; }
+    .badge-free     { background: rgba(96,165,250,0.12);  color: #60a5fa; }
+    .badge-taken    { background: rgba(251,191,36,0.12);  color: #fbbf24; }
+    .badge-done     { background: rgba(148,163,184,0.12); color: #94a3b8; }
 
     .btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
            cursor: pointer; border: none; transition: all 0.15s; }
@@ -65,45 +68,44 @@
     .btn-success:hover { background: rgba(74,222,128,0.25); }
     .btn-ghost   { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
     .btn-ghost:hover   { background: rgba(255,255,255,0.1); }
+    .btn-logout  { background: transparent; color: #64748b; border: 1px solid rgba(255,255,255,0.08);
+                   font-size: 11px; padding: 5px 12px; }
+    .btn-logout:hover  { color: #f87171; border-color: rgba(248,113,113,0.3); }
     .btn-sm { padding: 4px 10px; font-size: 10px; }
 
-    /* ── МОДАЛЬНОЕ ОКНО ── */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
                      align-items: center; justify-content: center; z-index: 100; padding: 20px; }
     .modal-overlay.open { display: flex; }
     .modal { background: #1e293b; border-radius: 16px; width: 100%; max-width: 680px;
              border: 1px solid rgba(255,255,255,0.1); max-height: 90vh; overflow-y: auto; }
     .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
-                    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #1e293b; z-index: 1; }
+                    display: flex; align-items: center; justify-content: space-between;
+                    position: sticky; top: 0; background: #1e293b; z-index: 1; }
     .modal-title { font-size: 15px; font-weight: 600; color: #f1f5f9; }
     .modal-close { background: none; border: none; color: #64748b; font-size: 20px; cursor: pointer; padding: 0 4px; }
     .modal-close:hover { color: #f1f5f9; }
     .modal-body { padding: 20px 24px; }
 
     .field { margin-bottom: 14px; }
-    .field label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
-    .field input, .field textarea, .field select {
+    .field label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 5px;
+                   text-transform: uppercase; letter-spacing: 0.4px; }
+    .field input, .field textarea {
       width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #e2e8f0;
       outline: none; transition: border-color 0.15s; font-family: inherit; }
-    .field input:focus, .field textarea:focus, .field select:focus { border-color: #3b82f6; }
+    .field input:focus, .field textarea:focus { border-color: #3b82f6; }
     .field textarea { resize: vertical; min-height: 80px; }
-    .field input[readonly], .field textarea[readonly] {
-      background: rgba(255,255,255,0.03); color: #64748b; cursor: default; }
+    .field input[readonly] { background: rgba(255,255,255,0.03); color: #64748b; cursor: default; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;
                      padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
 
-    /* ── ФОТО ── */
     .photos-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .photo-item { position: relative; }
     .photo-item img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px;
                       border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: opacity 0.15s; }
     .photo-item img:hover { opacity: 0.8; }
     .photo-empty { color: #475569; font-size: 12px; padding: 12px 0; }
 
-    /* ── СТАТУС BAR ── */
     .status-bar { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
                   display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -111,7 +113,6 @@
     .status-taken { background: rgba(251,191,36,0.1);  color: #fbbf24; }
     .status-done  { background: rgba(74,222,128,0.1);  color: #4ade80; }
 
-    /* ── ЛАЙТБОКС ── */
     .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
                 align-items: center; justify-content: center; z-index: 200; }
     .lightbox.open { display: flex; }
@@ -138,15 +139,20 @@
 <body>
 
 <div class="topbar">
-  <div>
-    <div class="topbar-title">КТО — Панель администратора</div>
-    <div class="topbar-sub">Управление мастерами и заявками</div>
+  <div class="topbar-left">
+    <div>
+      <div class="topbar-title">КТО — Панель администратора</div>
+      <div class="topbar-sub">Управление мастерами и заявками</div>
+    </div>
   </div>
-  <button class="btn btn-primary" onclick="openAddMasterModal()">+ Добавить мастера</button>
+  <div class="topbar-right">
+    <div class="admin-chip" id="admin-name">—</div>
+    <button class="btn btn-logout" onclick="logout()">Выйти</button>
+    <button class="btn btn-primary" onclick="openAddMasterModal()">+ Добавить мастера</button>
+  </div>
 </div>
 
 <div class="container">
-
   <div class="stats">
     <div class="stat-card"><div class="stat-num" id="stat-masters">—</div><div class="stat-label">Мастеров активно</div></div>
     <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Заявок всего</div></div>
@@ -159,7 +165,6 @@
     <button class="tab" onclick="showTab('requests', this)">Заявки</button>
   </div>
 
-  <!-- Мастера -->
   <div id="tab-masters" class="section">
     <div class="section-header">
       <div class="section-title">Список мастеров</div>
@@ -171,15 +176,14 @@
     </table>
   </div>
 
-  <!-- Заявки -->
   <div id="tab-requests" class="section" style="display:none">
     <div class="section-header">
       <div class="section-title">Все заявки</div>
       <div class="filter-row">
-        <button class="filter-btn active" onclick="setFilter('all', this)">Все</button>
-        <button class="filter-btn" onclick="setFilter('free', this)">Свободные</button>
-        <button class="filter-btn" onclick="setFilter('taken', this)">В работе</button>
-        <button class="filter-btn" onclick="setFilter('done', this)">Выполненные</button>
+        <button class="filter-btn active" onclick="setFilter('all',this)">Все</button>
+        <button class="filter-btn" onclick="setFilter('free',this)">Свободные</button>
+        <button class="filter-btn" onclick="setFilter('taken',this)">В работе</button>
+        <button class="filter-btn" onclick="setFilter('done',this)">Выполненные</button>
         <button class="btn btn-ghost btn-sm" onclick="loadRequests()">Обновить</button>
       </div>
     </div>
@@ -188,10 +192,9 @@
       <tbody id="requests-tbody"><tr><td colspan="6" class="empty">Загрузка...</td></tr></tbody>
     </table>
   </div>
-
 </div>
 
-<!-- ── МОДАЛКА: ДОБАВИТЬ МАСТЕРА ── -->
+<!-- Модалка: добавить мастера -->
 <div class="modal-overlay" id="modal-master" onclick="closeModalMaster(event)">
   <div class="modal">
     <div class="modal-header">
@@ -212,7 +215,7 @@
   </div>
 </div>
 
-<!-- ── МОДАЛКА: КАРТОЧКА ЗАЯВКИ ── -->
+<!-- Модалка: карточка заявки -->
 <div class="modal-overlay" id="modal-request" onclick="closeModalRequest(event)">
   <div class="modal">
     <div class="modal-header">
@@ -221,7 +224,6 @@
     </div>
     <div class="modal-body">
       <div id="req-status-bar" class="status-bar"></div>
-
       <div class="field-row">
         <div class="field"><label>Номер заявки</label><input type="text" id="req-number" readonly></div>
         <div class="field"><label>Категория</label><input type="text" id="req-category"></div>
@@ -240,7 +242,6 @@
 
       <div class="divider"></div>
 
-      <!-- Исполнитель -->
       <div id="req-worker-section" style="display:none">
         <div class="field-row">
           <div class="field"><label>Исполнитель</label><input type="text" id="req-master" readonly></div>
@@ -252,7 +253,6 @@
         <div class="divider"></div>
       </div>
 
-      <!-- Фотоотчёт -->
       <div class="field">
         <label>Фотоотчёт</label>
         <div class="photos-grid" id="req-photos"></div>
@@ -266,7 +266,7 @@
   </div>
 </div>
 
-<!-- Лайтбокс для фото -->
+<!-- Лайтбокс -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close">×</button>
   <img id="lightbox-img" src="" alt="">
@@ -275,10 +275,35 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://kto-server-production.up.railway.app/api';
+const API = '/api';
 let currentRequestId = null;
 let allRequests = [];
 let currentFilter = 'all';
+
+// ── Проверка авторизации ──────────────────
+const token = localStorage.getItem('kto_token');
+if (!token) {
+  window.location.href = '/login';
+}
+
+// Показываем имя админа
+const adminName = localStorage.getItem('kto_admin') || 'admin';
+document.getElementById('admin-name').textContent = adminName;
+
+// Заголовок с токеном для всех запросов
+function authHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+}
+
+// Выход
+function logout() {
+  localStorage.removeItem('kto_token');
+  localStorage.removeItem('kto_admin');
+  window.location.href = '/login';
+}
 
 // ── Утилиты ──────────────────────────────
 function toast(msg, ok = true) {
@@ -289,20 +314,23 @@ function toast(msg, ok = true) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleString('ru-RU');
-}
-
-function fmtShort(d) {
-  if (!d) return '';
-  return new Date(d).toLocaleDateString('ru-RU');
-}
+function fmtDate(d)  { return d ? new Date(d).toLocaleString('ru-RU')     : '—'; }
+function fmtShort(d) { return d ? new Date(d).toLocaleDateString('ru-RU') : ''; }
 
 function statusBadge(s) {
   const map = { free: ['badge-free','Свободна'], taken: ['badge-taken','В работе'], done: ['badge-done','Выполнено'] };
   const [cls, label] = map[s] || ['badge-done', s];
   return `<span class="badge ${cls}">${label}</span>`;
+}
+
+// Обработка 401 — истёк токен
+async function apiFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  if (res.status === 401 || res.status === 403) {
+    logout();
+    return null;
+  }
+  return res;
 }
 
 // ── Вкладки ───────────────────────────────
@@ -314,7 +342,6 @@ function showTab(name, btn) {
   if (name === 'requests') loadRequests();
 }
 
-// ── Фильтры заявок ────────────────────────
 function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -324,7 +351,8 @@ function setFilter(f, btn) {
 
 // ── МАСТЕРА ───────────────────────────────
 async function loadMasters() {
-  const res  = await fetch(`${API}/masters/all`);
+  const res  = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
+  if (!res) return;
   const data = await res.json();
   const tbody = document.getElementById('masters-tbody');
   document.getElementById('stat-masters').textContent = data.filter(m => m.is_active).length;
@@ -347,8 +375,8 @@ async function loadMasters() {
 
 async function toggleMaster(id, active, name, phone, e) {
   e.target.disabled = true;
-  await fetch(`${API}/masters/${id}`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
+  await apiFetch(`${API}/masters/${id}`, {
+    method: 'PUT', headers: authHeaders(),
     body: JSON.stringify({ full_name: name, phone, is_active: active })
   });
   toast(active ? `${name} активирован` : `${name} отключён`);
@@ -371,18 +399,20 @@ async function addMaster() {
   const phone     = document.getElementById('inp-phone').value.trim();
   const code      = document.getElementById('inp-code').value.trim();
   if (!full_name) { toast('Введите ФИО!', false); return; }
-  const res = await fetch(`${API}/masters`, {
-    method: 'POST', headers: {'Content-Type':'application/json'},
+
+  const res = await apiFetch(`${API}/masters`, {
+    method: 'POST', headers: authHeaders(),
     body: JSON.stringify({ full_name, phone, code })
   });
-  if (res.ok) { toast(`${full_name} добавлен!`); closeModalMaster(); loadMasters(); }
+  if (res && res.ok) { toast(`${full_name} добавлен!`); closeModalMaster(); loadMasters(); }
   else toast('Ошибка при добавлении', false);
 }
 
 // ── ЗАЯВКИ ────────────────────────────────
 async function loadRequests() {
   try {
-    const res  = await fetch(`${API}/requests`);
+    const res = await apiFetch(`${API}/requests`, { headers: authHeaders() });
+    if (!res) return;
     allRequests = await res.json();
     document.getElementById('stat-total').textContent = allRequests.length;
     document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
@@ -401,7 +431,7 @@ function renderRequests() {
   if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>'; return; }
 
   tbody.innerHTML = data.map(r => `
-    <tr onclick="openRequest(${r.id})">
+    <tr class="clickable" onclick="openRequest(${r.id})">
       <td><b style="color:#60a5fa">#${r.number_1c || '—'}</b></td>
       <td>${r.category || '—'}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</td>
@@ -414,30 +444,32 @@ function renderRequests() {
 // ── КАРТОЧКА ЗАЯВКИ ───────────────────────
 async function openRequest(id) {
   currentRequestId = id;
-  const res  = await fetch(`${API}/requests/${id}`);
-  const r    = await res.json();
+  const res = await apiFetch(`${API}/requests/${id}`, { headers: authHeaders() });
+  if (!res) return;
+  const r = await res.json();
 
   document.getElementById('req-modal-title').textContent = `Заявка #${r.number_1c}`;
 
-  // Статус бар
   const statusColors = { free: '#4ade80', taken: '#fbbf24', done: '#4ade80' };
-  const statusText   = { free: 'Свободна — мастер не назначен', taken: `В работе у ${r.master_name||'...'}`, done: `Выполнено · ${r.master_name}` };
+  const statusText   = {
+    free:  'Свободна — мастер не назначен',
+    taken: `В работе у ${r.master_name || '...'}`,
+    done:  `Выполнено · ${r.master_name}`
+  };
   const bar = document.getElementById('req-status-bar');
   bar.className = `status-bar status-${r.status}`;
   bar.innerHTML = `<div class="status-dot" style="background:${statusColors[r.status]}"></div>${statusText[r.status]}`;
 
-  // Поля
-  document.getElementById('req-number').value   = r.number_1c  || '';
-  document.getElementById('req-category').value = r.category   || '';
-  document.getElementById('req-address').value  = r.address    || '';
-  document.getElementById('req-branch').value   = r.branch     || '';
-  document.getElementById('req-contact').value  = r.contact_person || '';
-  document.getElementById('req-date').value     = fmtDate(r.date_received);
-  document.getElementById('req-deadline').value = fmtShort(r.deadline);
-  document.getElementById('req-dispatcher').value = r.dispatcher || '';
-  document.getElementById('req-content').value  = r.content    || '';
+  document.getElementById('req-number').value    = r.number_1c       || '';
+  document.getElementById('req-category').value  = r.category        || '';
+  document.getElementById('req-address').value   = r.address         || '';
+  document.getElementById('req-branch').value    = r.branch          || '';
+  document.getElementById('req-contact').value   = r.contact_person  || '';
+  document.getElementById('req-date').value      = fmtDate(r.date_received);
+  document.getElementById('req-deadline').value  = fmtShort(r.deadline);
+  document.getElementById('req-dispatcher').value= r.dispatcher      || '';
+  document.getElementById('req-content').value   = r.content         || '';
 
-  // Исполнитель
   const workerSection = document.getElementById('req-worker-section');
   if (r.status !== 'free') {
     workerSection.style.display = '';
@@ -454,16 +486,14 @@ async function openRequest(id) {
     workerSection.style.display = 'none';
   }
 
-  // Фото
   const photosGrid = document.getElementById('req-photos');
   if (r.photos && r.photos.length > 0) {
-    const baseUrl = API.replace('/api', '');
+    const baseUrl = window.location.origin;
     photosGrid.innerHTML = r.photos.map(p => `
       <div class="photo-item">
         <img src="${baseUrl}/uploads/${p.filename}"
-             alt="фото"
              onclick="openLightbox('${baseUrl}/uploads/${p.filename}')"
-             onerror="this.style.display='none'">
+             onerror="this.parentElement.style.display='none'">
       </div>`).join('');
   } else {
     photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>';
@@ -483,11 +513,10 @@ async function saveRequest() {
     dispatcher:     document.getElementById('req-dispatcher').value,
     content:        document.getElementById('req-content').value,
   };
-  const res = await fetch(`${API}/requests/${currentRequestId}`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(body)
+  const res = await apiFetch(`${API}/requests/${currentRequestId}`, {
+    method: 'PUT', headers: authHeaders(), body: JSON.stringify(body)
   });
-  if (res.ok) { toast('Заявка сохранена!'); loadRequests(); }
+  if (res && res.ok) { toast('Заявка сохранена!'); loadRequests(); }
   else toast('Ошибка при сохранении', false);
 }
 
@@ -498,7 +527,7 @@ function closeModalRequest(e) {
   }
 }
 
-// ── ЛАЙТБОКС ────────────────────────────
+// ── ЛАЙТБОКС ─────────────────────────────
 function openLightbox(url) {
   document.getElementById('lightbox-img').src = url;
   document.getElementById('lightbox').classList.add('open');
