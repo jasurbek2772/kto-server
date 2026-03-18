@@ -207,6 +207,10 @@
         <div class="field"><label>Телефон</label><input type="text" id="inp-phone" placeholder="+7 913 111-22-33"></div>
         <div class="field"><label>Код (из 1С)</label><input type="text" id="inp-code" placeholder="019254"></div>
       </div>
+      <div class="field">
+  <label>Фото мастера</label>
+  <input type="file" id="inp-photo" accept="image/*">
+</div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModalMaster()">Отмена</button>
         <button class="btn btn-primary" onclick="addMaster()">Добавить</button>
@@ -351,7 +355,7 @@ function setFilter(f, btn) {
 
 // ── МАСТЕРА ───────────────────────────────
 async function loadMasters() {
-  const res  = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
+  const res = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
   if (!res) return;
   const data = await res.json();
   const tbody = document.getElementById('masters-tbody');
@@ -361,9 +365,15 @@ async function loadMasters() {
 
   tbody.innerHTML = data.map(m => `
     <tr>
-      <td><b style="color:#f1f5f9">${m.full_name}</b></td>
+      <td>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${m.photo_url || 'https://via.placeholder.com/40'}" 
+               style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1)">
+          <b style="color:#f1f5f9">${m.full_name}</b>
+        </div>
+      </td>
       <td>${m.phone || '—'}</td>
-      <td>${m.code  || '—'}</td>
+      <td>${m.code || '—'}</td>
       <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span></td>
       <td>
         ${m.is_active
