@@ -128,6 +128,8 @@
 
     .empty { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
     .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 16px 0; }
+    
+    .master-avatar-circle { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #334155; border: 1px solid rgba(255,255,255,0.1); }
 
     @media (max-width: 600px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
@@ -194,7 +196,6 @@
   </div>
 </div>
 
-<!-- Модалка: добавить мастера -->
 <div class="modal-overlay" id="modal-master" onclick="closeModalMaster(event)">
   <div class="modal">
     <div class="modal-header">
@@ -208,18 +209,17 @@
         <div class="field"><label>Код (из 1С)</label><input type="text" id="inp-code" placeholder="019254"></div>
       </div>
       <div class="field">
-  <label>Фото мастера</label>
-  <input type="file" id="inp-photo" accept="image/*">
-</div>
+        <label>Фото мастера</label>
+        <input type="file" id="inp-photo" accept="image/*">
+      </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModalMaster()">Отмена</button>
-        <button class="btn btn-primary" onclick="addMaster()">Добавить</button>
+        <button class="btn btn-primary" id="btn-save-master" onclick="addMaster()">Добавить</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Модалка: карточка заявки -->
 <div class="modal-overlay" id="modal-request" onclick="closeModalRequest(event)">
   <div class="modal">
     <div class="modal-header">
@@ -270,7 +270,6 @@
   </div>
 </div>
 
-<!-- Лайтбокс -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close">×</button>
   <img id="lightbox-img" src="" alt="">
@@ -294,12 +293,9 @@ if (!token) {
 const adminName = localStorage.getItem('kto_admin') || 'admin';
 document.getElementById('admin-name').textContent = adminName;
 
-// Заголовок с токеном для всех запросов
+// Заголовок с токеном
 function authHeaders() {
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  };
+  return { 'Authorization': `Bearer ${token}` };
 }
 
 // Выход
@@ -327,7 +323,6 @@ function statusBadge(s) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
-// Обработка 401 — истёк токен
 async function apiFetch(url, options = {}) {
   const res = await fetch(url, options);
   if (res.status === 401 || res.status === 403) {
@@ -366,14 +361,13 @@ async function loadMasters() {
   tbody.innerHTML = data.map(m => `
     <tr>
       <td>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${m.photo_url || 'https://via.placeholder.com/40'}" 
-               style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex; align-items:center; gap:10px">
+          <img src="${m.photo_url || 'https://via.placeholder.com/40'}" class="master-avatar-circle">
           <b style="color:#f1f5f9">${m.full_name}</b>
         </div>
       </td>
       <td>${m.phone || '—'}</td>
-      <td>${m.code || '—'}</td>
+      <td>${m.code  || '—'}</td>
       <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span></td>
       <td>
         ${m.is_active
@@ -386,7 +380,7 @@ async function loadMasters() {
 async function toggleMaster(id, active, name, phone, e) {
   e.target.disabled = true;
   await apiFetch(`${API}/masters/${id}`, {
-    method: 'PUT', headers: authHeaders(),
+    method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify({ full_name: name, phone, is_active: active })
   });
   toast(active ? `${name} активирован` : `${name} отключён`);
@@ -395,27 +389,38 @@ async function toggleMaster(id, active, name, phone, e) {
 
 function openAddMasterModal() {
   document.getElementById('modal-master').classList.add('open');
-  document.getElementById('inp-name').focus();
 }
 function closeModalMaster(e) {
-  if (!e || e.target.id === 'modal-master') {
+  if (!e || e.target.id === 'modal-master' || e.target.className === 'modal-close' || e.target.textContent === 'Отмена') {
     document.getElementById('modal-master').classList.remove('open');
-    ['inp-name','inp-phone','inp-code'].forEach(id => document.getElementById(id).value = '');
+    ['inp-name','inp-phone','inp-code','inp-photo'].forEach(id => document.getElementById(id).value = '');
   }
 }
 
 async function addMaster() {
-  const full_name = document.getElementById('inp-name').value.trim();
-  const phone     = document.getElementById('inp-phone').value.trim();
-  const code      = document.getElementById('inp-code').value.trim();
-  if (!full_name) { toast('Введите ФИО!', false); return; }
+  const name = document.getElementById('inp-name').value.trim();
+  const photoFile = document.getElementById('inp-photo').files[0];
+  if (!name) return alert('Введите ФИО!');
 
-  const res = await apiFetch(`${API}/masters`, {
-    method: 'POST', headers: authHeaders(),
-    body: JSON.stringify({ full_name, phone, code })
+  const btn = document.getElementById('btn-save-master');
+  btn.disabled = true; btn.textContent = 'Загрузка...';
+
+  const formData = new FormData();
+  formData.append('full_name', name);
+  formData.append('phone', document.getElementById('inp-phone').value);
+  formData.append('code', document.getElementById('inp-code').value);
+  if (photoFile) formData.append('photo', photoFile);
+
+  const res = await fetch(`${API}/masters`, {
+    method: 'POST',
+    headers: authHeaders(), // Автоматически поставит multipart/form-data
+    body: formData
   });
-  if (res && res.ok) { toast(`${full_name} добавлен!`); closeModalMaster(); loadMasters(); }
+
+  if (res.ok) { toast(`${name} добавлен!`); closeModalMaster(); loadMasters(); }
   else toast('Ошибка при добавлении', false);
+  
+  btn.disabled = false; btn.textContent = 'Добавить';
 }
 
 // ── ЗАЯВКИ ────────────────────────────────
@@ -437,7 +442,6 @@ function renderRequests() {
   const tbody = document.getElementById('requests-tbody');
   let data = allRequests;
   if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
-
   if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>'; return; }
 
   tbody.innerHTML = data.map(r => `
@@ -459,7 +463,6 @@ async function openRequest(id) {
   const r = await res.json();
 
   document.getElementById('req-modal-title').textContent = `Заявка #${r.number_1c}`;
-
   const statusColors = { free: '#4ade80', taken: '#fbbf24', done: '#4ade80' };
   const statusText   = {
     free:  'Свободна — мастер не назначен',
@@ -470,15 +473,15 @@ async function openRequest(id) {
   bar.className = `status-bar status-${r.status}`;
   bar.innerHTML = `<div class="status-dot" style="background:${statusColors[r.status]}"></div>${statusText[r.status]}`;
 
-  document.getElementById('req-number').value    = r.number_1c       || '';
-  document.getElementById('req-category').value  = r.category        || '';
-  document.getElementById('req-address').value   = r.address         || '';
-  document.getElementById('req-branch').value    = r.branch          || '';
-  document.getElementById('req-contact').value   = r.contact_person  || '';
-  document.getElementById('req-date').value      = fmtDate(r.date_received);
-  document.getElementById('req-deadline').value  = fmtShort(r.deadline);
-  document.getElementById('req-dispatcher').value= r.dispatcher      || '';
-  document.getElementById('req-content').value   = r.content         || '';
+  document.getElementById('req-number').value     = r.number_1c        || '';
+  document.getElementById('req-category').value   = r.category         || '';
+  document.getElementById('req-address').value    = r.address          || '';
+  document.getElementById('req-branch').value     = r.branch           || '';
+  document.getElementById('req-contact').value    = r.contact_person   || '';
+  document.getElementById('req-date').value       = fmtDate(r.date_received);
+  document.getElementById('req-deadline').value   = fmtShort(r.deadline);
+  document.getElementById('req-dispatcher').value = r.dispatcher       || '';
+  document.getElementById('req-content').value    = r.content          || '';
 
   const workerSection = document.getElementById('req-worker-section');
   if (r.status !== 'free') {
@@ -489,25 +492,19 @@ async function openRequest(id) {
     if (r.done_at) {
       doneSection.style.display = '';
       document.getElementById('req-done-at').value = fmtDate(r.done_at);
-    } else {
-      doneSection.style.display = 'none';
-    }
-  } else {
-    workerSection.style.display = 'none';
-  }
+    } else { doneSection.style.display = 'none'; }
+  } else { workerSection.style.display = 'none'; }
 
   const photosGrid = document.getElementById('req-photos');
   if (r.photos && r.photos.length > 0) {
-    const baseUrl = window.location.origin;
-    photosGrid.innerHTML = r.photos.map(p => `
+    photosGrid.innerHTML = r.photos.map(p => {
+      const url = p.filename.startsWith('http') ? p.filename : `/uploads/${p.filename}`;
+      return `
       <div class="photo-item">
-        <img src="${baseUrl}/uploads/${p.filename}"
-             onclick="openLightbox('${baseUrl}/uploads/${p.filename}')"
-             onerror="this.parentElement.style.display='none'">
-      </div>`).join('');
-  } else {
-    photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>';
-  }
+        <img src="${url}" onclick="openLightbox('${url}')" onerror="this.parentElement.style.display='none'">
+      </div>`;
+    }).join('');
+  } else { photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>'; }
 
   document.getElementById('modal-request').classList.add('open');
 }
@@ -515,16 +512,17 @@ async function openRequest(id) {
 async function saveRequest() {
   if (!currentRequestId) return;
   const body = {
-    category:       document.getElementById('req-category').value,
-    address:        document.getElementById('req-address').value,
-    branch:         document.getElementById('req-branch').value,
+    category: document.getElementById('req-category').value,
+    address: document.getElementById('req-address').value,
+    branch: document.getElementById('req-branch').value,
     contact_person: document.getElementById('req-contact').value,
-    deadline:       document.getElementById('req-deadline').value,
-    dispatcher:     document.getElementById('req-dispatcher').value,
-    content:        document.getElementById('req-content').value,
+    deadline: document.getElementById('req-deadline').value,
+    dispatcher: document.getElementById('req-dispatcher').value,
+    content: document.getElementById('req-content').value,
   };
   const res = await apiFetch(`${API}/requests/${currentRequestId}`, {
-    method: 'PUT', headers: authHeaders(), body: JSON.stringify(body)
+    method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, 
+    body: JSON.stringify(body)
   });
   if (res && res.ok) { toast('Заявка сохранена!'); loadRequests(); }
   else toast('Ошибка при сохранении', false);
@@ -537,16 +535,12 @@ function closeModalRequest(e) {
   }
 }
 
-// ── ЛАЙТБОКС ─────────────────────────────
 function openLightbox(url) {
   document.getElementById('lightbox-img').src = url;
   document.getElementById('lightbox').classList.add('open');
 }
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
 
-// ── СТАРТ ────────────────────────────────
 loadMasters();
 </script>
 </body>
