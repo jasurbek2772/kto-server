@@ -406,28 +406,28 @@ function closeModalMaster(e) {
 }
 
 async function addMaster() {
-  const name = document.getElementById('inp-name').value.trim();
-  const photoFile = document.getElementById('inp-photo').files[0];
-  if (!name) return alert('Введите ФИО!');
+  const full_name = document.getElementById('inp-name').value.trim();
+  const phone     = document.getElementById('inp-phone').value.trim();
+  const code      = document.getElementById('inp-code').value.trim();
+  if (!full_name) { toast('Введите ФИО!', false); return; }
 
   const btn = document.getElementById('btn-save-master');
   btn.disabled = true; btn.textContent = 'Загрузка...';
 
-  const formData = new FormData();
-  formData.append('full_name', name);
-  formData.append('phone', document.getElementById('inp-phone').value);
-  formData.append('code', document.getElementById('inp-code').value);
-  if (photoFile) formData.append('photo', photoFile);
-
-  const res = await fetch(`${API}/masters`, {
+  const res = await apiFetch(`${API}/masters`, {
     method: 'POST',
-    headers: authHeaders(), // Автоматически поставит multipart/form-data
-    body: formData
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ full_name, phone, code })
   });
 
-  if (res.ok) { toast(`${name} добавлен!`); closeModalMaster(); loadMasters(); }
-  else toast('Ошибка при добавлении', false);
-  
+  if (res && res.ok) {
+    toast(`${full_name} добавлен!`);
+    closeModalMaster();
+    loadMasters();
+  } else {
+    toast('Ошибка при добавлении', false);
+  }
+
   btn.disabled = false; btn.textContent = 'Добавить';
 }
 
