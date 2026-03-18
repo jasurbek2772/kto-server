@@ -13,6 +13,7 @@ const authMiddleware = require('./src/routes/middleware/auth_middleware');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // ← добавь эту строку
 
 // Страница логина — публичная
 app.get('/login', (req, res) => {
@@ -35,4 +36,4 @@ app.use('/api/1c',       onecRouter);
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'КТО API работает' }));
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`✓ Сервер: http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✓ НСервер: http://localhost:${PORT}`));
