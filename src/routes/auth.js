@@ -43,10 +43,10 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'Введите логин и пароль' });
   }
 
-  const hash = await bcrypt.hash(password, 10);
+  //const hash = await bcrypt.hash(password, 10);
   db.query(
-    'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
-    [username, hash],
+  'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
+  [username, password],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(201).json({ id: result.insertId, username });
