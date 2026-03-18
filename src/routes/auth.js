@@ -19,10 +19,18 @@ router.post('/login', (req, res) => {
       }
       
       if (!rows.length) {
+        console.log('❌ Пользователь не найден:', username); // ← отладка
         return res.status(401).json({ error: 'Неверный логин или пароль' });
       }
 
       const admin = rows[0];
+      
+      // ✅ ВАЖНО: смотрим, что сравнивается
+      console.log('🔍 Попытка входа:');
+      console.log('   Логин из запроса:', username);
+      console.log('   Пароль из запроса:', `"${password}"`); // Кавычки покажут пробелы
+      console.log('   Пароль из БД:     ', `"${admin.password_hash}"`);
+      console.log('   Совпадают?:', password === admin.password_hash);
       
       // Прямое сравнение паролей (без хеширования)
       if (password !== admin.password_hash) {
@@ -36,6 +44,8 @@ router.post('/login', (req, res) => {
         { expiresIn: '7d' }
       );
 
+      console.log('✅ Вход успешен для:', username); // ← отладка
+      
       res.json({ 
         token, 
         username: admin.username 
@@ -65,6 +75,13 @@ router.post('/register', (req, res) => {
         return res.status(500).json({ error: err.message });
       }
       
+      // ✅ ПРАВИЛЬНО: console.log ДО отправки ответа
+      console.log('✅ Регистрация нового администратора:');
+      console.log('   Логин:', username);
+      console.log('   Пароль (как сохранен):', password);
+      console.log('   ID нового админа:', result.insertId);
+      
+      // ✅ А это уже отправка ответа клиенту
       res.status(201).json({ 
         id: result.insertId, 
         username,
