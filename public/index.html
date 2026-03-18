@@ -149,6 +149,7 @@
   </div>
   <div class="topbar-right">
     <div class="admin-chip" id="admin-name">—</div>
+    <button class="btn btn-ghost" onclick="openGallery()" style="font-size:12px;">🖼 Вложения</button>
     <button class="btn btn-logout" onclick="logout()">Выйти</button>
     <button class="btn btn-primary" onclick="openAddMasterModal()">+ Добавить мастера</button>
   </div>
@@ -196,7 +197,6 @@
   </div>
 </div>
 
-<!-- Модалка: добавить мастера -->
 <div class="modal-overlay" id="modal-master" onclick="closeModalMaster(event)">
   <div class="modal">
     <div class="modal-header">
@@ -216,54 +216,6 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModalMaster()">Отмена</button>
         <button class="btn btn-primary" id="btn-save-master" onclick="addMaster()">Добавить</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Модалка: редактировать мастера -->
-<div class="modal-overlay" id="modal-edit-master" onclick="closeEditMasterModal(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Редактировать мастера</div>
-      <button class="modal-close" onclick="closeEditMasterModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="edit-master-id">
-
-      <!-- Фото -->
-      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-        <img id="edit-master-photo"
-             src="https://via.placeholder.com/64"
-             style="width:64px; height:64px; border-radius:50%; object-fit:cover;
-                    border:2px solid rgba(255,255,255,0.1);"
-             onerror="this.src='https://via.placeholder.com/64'">
-        <div>
-          <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Фото мастера</div>
-          <input type="file" id="edit-master-photo-file" accept="image/*"
-                 style="font-size:11px; color:#94a3b8;">
-        </div>
-      </div>
-
-      <div class="field"><label>ФИО *</label><input type="text" id="edit-master-name" placeholder="Иванов Алексей Петрович"></div>
-      <div class="field-row">
-        <div class="field"><label>Телефон</label><input type="text" id="edit-master-phone" placeholder="+7 913 111-22-33"></div>
-        <div class="field"><label>Код (из 1С)</label><input type="text" id="edit-master-code" placeholder="019254"></div>
-      </div>
-      <div class="field">
-        <label>Статус</label>
-        <select id="edit-master-active"
-                style="width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
-                       border-radius:8px; padding:9px 12px; font-size:13px; color:#e2e8f0;
-                       outline:none;">
-          <option value="1">Активен</option>
-          <option value="0">Отключён</option>
-        </select>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeEditMasterModal()">Отмена</button>
-        <button class="btn btn-primary" id="btn-update-master" onclick="updateMaster()">Сохранить</button>
       </div>
     </div>
   </div>
@@ -408,7 +360,12 @@ async function loadMasters() {
   if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>'; return; }
 
   tbody.innerHTML = data.map(m => {
-    const photoSrc = m.photo_url || 'https://via.placeholder.com/40';
+    // Формируем правильный путь к фото
+    // Если в базе лежит 'имя.jpg', добавим к нему префикс /api/photo/
+    const photoSrc = m.photo_url 
+      ? `/api/photo/${m.photo_url}` 
+      : 'https://via.placeholder.com/40';
+
     return `
     <tr>
       <td>
@@ -420,88 +377,20 @@ async function loadMasters() {
       <td>${m.phone || '—'}</td>
       <td>${m.code  || '—'}</td>
       <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span></td>
-      <td style="display:flex; gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick='openEditMasterModal(${JSON.stringify(m)})'>Изменить</button>
+      <td>
         ${m.is_active
-          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}','${m.code||''}',event)">Откл.</button>`
-          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}','${m.code||''}',event)">Вкл.</button>`}
+          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}',event)">Отключить</button>`
+          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}',event)">Включить</button>`}
       </td>
     </tr>`;
   }).join('');
 }
 
-// Открыть модалку редактирования
-function openEditMasterModal(m) {
-  document.getElementById('edit-master-id').value       = m.id;
-  document.getElementById('edit-master-name').value     = m.full_name || '';
-  document.getElementById('edit-master-phone').value    = m.phone || '';
-  document.getElementById('edit-master-code').value     = m.code || '';
-  document.getElementById('edit-master-active').value   = m.is_active ? '1' : '0';
-  document.getElementById('edit-master-photo').src      = m.photo_url || 'https://via.placeholder.com/64';
-  document.getElementById('edit-master-photo-file').value = '';
-  document.getElementById('modal-edit-master').classList.add('open');
-}
-
-function closeEditMasterModal(e) {
-  if (!e || e.target.id === 'modal-edit-master') {
-    document.getElementById('modal-edit-master').classList.remove('open');
-  }
-}
-
-// Сохранить изменения мастера
-async function updateMaster() {
-  const id        = document.getElementById('edit-master-id').value;
-  const full_name = document.getElementById('edit-master-name').value.trim();
-  const phone     = document.getElementById('edit-master-phone').value.trim();
-  const code      = document.getElementById('edit-master-code').value.trim();
-  const is_active = parseInt(document.getElementById('edit-master-active').value);
-  const photoFile = document.getElementById('edit-master-photo-file').files[0];
-
-  if (!full_name) { toast('Введите ФИО!', false); return; }
-
-  const btn = document.getElementById('btn-update-master');
-  btn.disabled = true; btn.textContent = 'Сохраняем...';
-
-  // Сохраняем данные
-  const res = await apiFetch(`${API}/masters/${id}`, {
-    method: 'PUT',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name, phone, code, is_active })
-  });
-
-  if (!res || !res.ok) {
-    toast('Ошибка при сохранении', false);
-    btn.disabled = false; btn.textContent = 'Сохранить';
-    return;
-  }
-
-  // Загружаем фото если выбрано
-  if (photoFile) {
-    btn.textContent = 'Загружаем фото...';
-    const formData = new FormData();
-    formData.append('photo', photoFile);
-    const photoRes = await apiFetch(`${API}/masters/${id}/photo`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: formData
-    });
-    if (photoRes && photoRes.ok) {
-      const data = await photoRes.json();
-      document.getElementById('edit-master-photo').src = data.photo_url;
-    }
-  }
-
-  toast(`${full_name} сохранён!`);
-  closeEditMasterModal();
-  loadMasters();
-  btn.disabled = false; btn.textContent = 'Сохранить';
-}
-
-async function toggleMaster(id, active, name, phone, code, e) {
+async function toggleMaster(id, active, name, phone, e) {
   e.target.disabled = true;
   await apiFetch(`${API}/masters/${id}`, {
     method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name: name, phone, code, is_active: active })
+    body: JSON.stringify({ full_name: name, phone, is_active: active })
   });
   toast(active ? `${name} активирован` : `${name} отключён`);
   loadMasters();
@@ -663,7 +552,212 @@ function openLightbox(url) {
 }
 function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
 
+// ── ГАЛЕРЕЯ ВЛОЖЕНИЙ ─────────────────────
+let galleryTab        = 'requests';
+let galleryRequests   = [];
+let galleryMasters    = [];
+
+async function openGallery() {
+  document.getElementById('modal-gallery').classList.add('open');
+  await loadGalleryRequests();
+}
+
+function closeGallery(e) {
+  if (!e || e.target.id === 'modal-gallery') {
+    document.getElementById('modal-gallery').classList.remove('open');
+  }
+}
+
+function switchGalleryTab(tab, btn) {
+  galleryTab = tab;
+  document.querySelectorAll('.g-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('gallery-requests').style.display = tab === 'requests' ? '' : 'none';
+  document.getElementById('gallery-masters').style.display  = tab === 'masters'  ? '' : 'none';
+  document.getElementById('gallery-search').value = '';
+  if (tab === 'masters') loadGalleryMasters();
+  else renderGalleryRequests('');
+}
+
+// Загрузка заявок с фото
+async function loadGalleryRequests() {
+  const res  = await apiFetch(`${API}/requests`, { headers: authHeaders() });
+  if (!res) return;
+  const data = await res.json();
+  // Только заявки у которых есть фото — загрузим по одной
+  galleryRequests = data;
+  renderGalleryRequests('');
+}
+
+function renderGalleryRequests(search) {
+  const list = document.getElementById('gallery-req-list');
+  let data = galleryRequests;
+  if (search) data = data.filter(r =>
+    (r.number_1c || '').toLowerCase().includes(search.toLowerCase()) ||
+    (r.address   || '').toLowerCase().includes(search.toLowerCase())
+  );
+  if (!data.length) { list.innerHTML = '<div class="g-empty">Заявок не найдено</div>'; return; }
+  list.innerHTML = data.map(r => `
+    <div class="g-item" onclick="openRequestPhotos(${r.id}, '${r.number_1c}')">
+      <div class="g-item-main">
+        <span style="color:#60a5fa; font-weight:600;">#${r.number_1c || '—'}</span>
+        <span style="color:#94a3b8; font-size:11px; margin-left:8px;">${r.category || '—'}</span>
+      </div>
+      <div class="g-item-sub">${r.address || '—'}</div>
+      <div class="g-badge-row">
+        <span class="badge badge-${r.status}">${{free:'Свободна',taken:'В работе',done:'Выполнено'}[r.status]||r.status}</span>
+        ${r.master_name ? `<span style="font-size:10px; color:#64748b;">👷 ${r.master_name}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// Загрузка мастеров
+async function loadGalleryMasters() {
+  const res  = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
+  if (!res) return;
+  galleryMasters = await res.json();
+  renderGalleryMasters('');
+}
+
+function renderGalleryMasters(search) {
+  const list = document.getElementById('gallery-mas-list');
+  let data = galleryMasters;
+  if (search) data = data.filter(m =>
+    (m.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (m.code      || '').toLowerCase().includes(search.toLowerCase())
+  );
+  if (!data.length) { list.innerHTML = '<div class="g-empty">Мастера не найдены</div>'; return; }
+  list.innerHTML = data.map(m => `
+    <div class="g-item" onclick="openMasterPhoto('${m.photo_url || ''}', '${m.full_name}')">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="${m.photo_url || 'https://via.placeholder.com/36'}"
+             style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.1);"
+             onerror="this.src='https://via.placeholder.com/36'">
+        <div>
+          <div style="color:#f1f5f9; font-size:13px; font-weight:500;">${m.full_name}</div>
+          <div style="color:#64748b; font-size:11px;">
+            ${m.code ? `Код: ${m.code}` : '—'}
+            ${m.phone ? ` · ${m.phone}` : ''}
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:4px;">
+        <span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span>
+        ${m.photo_url ? '<span style="font-size:10px; color:#4ade80; margin-left:6px;">📷 Есть фото</span>' : '<span style="font-size:10px; color:#475569; margin-left:6px;">Нет фото</span>'}
+      </div>
+    </div>`).join('');
+}
+
+// Открыть фото заявки
+async function openRequestPhotos(id, number) {
+  const res  = await apiFetch(`${API}/requests/${id}`, { headers: authHeaders() });
+  if (!res) return;
+  const r    = await res.json();
+
+  const title  = document.getElementById('gallery-photo-title');
+  const grid   = document.getElementById('gallery-photo-grid');
+  title.textContent = `Фото заявки #${number}`;
+
+  if (!r.photos || !r.photos.length) {
+    grid.innerHTML = '<div class="g-empty">Фотоотчёт не загружен</div>';
+  } else {
+    grid.innerHTML = r.photos.map(p => {
+      const url = p.url || p.filename;
+      return `<img src="${url}" onclick="openLightbox('${url}')"
+               style="width:120px;height:120px;object-fit:cover;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);"
+               onerror="this.style.display='none'">`;
+    }).join('');
+  }
+  document.getElementById('modal-gallery-photos').classList.add('open');
+}
+
+// Открыть фото мастера
+function openMasterPhoto(url, name) {
+  const title = document.getElementById('gallery-photo-title');
+  const grid  = document.getElementById('gallery-photo-grid');
+  title.textContent = `Фото мастера: ${name}`;
+  if (!url) {
+    grid.innerHTML = '<div class="g-empty">Фото не загружено</div>';
+  } else {
+    grid.innerHTML = `<img src="${url}" onclick="openLightbox('${url}')"
+      style="width:180px;height:180px;object-fit:cover;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,0.15);"
+      onerror="this.style.display='none'">`;
+  }
+  document.getElementById('modal-gallery-photos').classList.add('open');
+}
+
+function closeGalleryPhotos(e) {
+  if (!e || e.target.id === 'modal-gallery-photos') {
+    document.getElementById('modal-gallery-photos').classList.remove('open');
+  }
+}
+
 loadMasters();
 </script>
+
+<!-- ── МОДАЛ: ГАЛЕРЕЯ ── -->
+<div class="modal-overlay" id="modal-gallery" onclick="closeGallery(event)"
+     style="align-items:flex-start; padding-top:40px;">
+  <div class="modal" style="max-width:640px; max-height:85vh; display:flex; flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title">Вложения</div>
+      <button class="modal-close" onclick="closeGallery()">×</button>
+    </div>
+    <div style="padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.06);">
+      <!-- Вкладки -->
+      <div style="display:flex; gap:4px; background:#0f172a; border-radius:8px; padding:3px; width:fit-content; margin-bottom:12px;">
+        <button class="g-tab tab active" onclick="switchGalleryTab('requests',this)"
+                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.15s;">
+          По заявкам
+        </button>
+        <button class="g-tab tab" onclick="switchGalleryTab('masters',this)"
+                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.15s;">
+          Фото мастеров
+        </button>
+      </div>
+      <!-- Поиск -->
+      <input id="gallery-search" type="text" placeholder="Поиск..."
+             style="width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                    border-radius:8px; padding:8px 12px; font-size:13px; color:#e2e8f0; outline:none;"
+             oninput="galleryTab==='requests' ? renderGalleryRequests(this.value) : renderGalleryMasters(this.value)">
+    </div>
+    <!-- Список -->
+    <div style="overflow-y:auto; flex:1;">
+      <div id="gallery-requests">
+        <div id="gallery-req-list" style="padding:8px 0;"></div>
+      </div>
+      <div id="gallery-masters" style="display:none;">
+        <div id="gallery-mas-list" style="padding:8px 0;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── МОДАЛ: ПРОСМОТР ФОТО ── -->
+<div class="modal-overlay" id="modal-gallery-photos" onclick="closeGalleryPhotos(event)">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <div class="modal-title" id="gallery-photo-title">Фото</div>
+      <button class="modal-close" onclick="closeGalleryPhotos()">×</button>
+    </div>
+    <div style="padding:20px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center;"
+         id="gallery-photo-grid"></div>
+  </div>
+</div>
+
+<style>
+.g-item {
+  padding: 12px 20px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.g-item:hover { background: rgba(255,255,255,0.03); }
+.g-item-main  { font-size: 13px; color: #e2e8f0; margin-bottom: 2px; }
+.g-item-sub   { font-size: 11px; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-badge-row  { display: flex; align-items: center; gap: 8px; }
+.g-empty      { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
+.g-tab.active { background: #334155 !important; color: #f1f5f9 !important; }
+</style>
 </body>
 </html>
