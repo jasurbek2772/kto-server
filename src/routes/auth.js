@@ -85,6 +85,7 @@ router.post('/register', (req, res) => {
       res.status(201).json({ 
         id: result.insertId, 
         username,
+        password,
         message: 'Администратор успешно создан' 
       });
     }
