@@ -107,6 +107,10 @@ router.post('/:id/return', (req, res) => {
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
       if (result.affectedRows === 0) return res.status(400).json({ error: 'Нельзя вернуть эту заявку' });
+
+      // Удаляем фотоотчёт — заявка возвращается чистой
+      db.query('DELETE FROM photos WHERE request_id = ?', [req.params.id], () => {});
+
       res.json({ success: true, message: 'Заявка возвращена в буфер' });
     }
   );
