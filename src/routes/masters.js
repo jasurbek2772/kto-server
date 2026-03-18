@@ -47,24 +47,23 @@ router.get('/all', (req, res) => {
 
 // POST /api/masters — добавить мастера (С ФОТО)
 // upload.single('photo') — это магия, которая наполняет req.body и загружает файл
+// ПРАВИЛЬНО: upload.single('photo') стоит ПЕРЕД (req, res)
 router.post('/', upload.single('photo'), (req, res) => {
-  const { full_name, code, phone } = req.body;
+  // Теперь multer уже отработал, и req.body больше не undefined!
+  const { full_name, code, phone } = req.body; 
   
   if (!full_name) {
     return res.status(400).json({ error: 'full_name обязателен' });
   }
 
-  // Ссылка на фото из Cloudinary будет здесь:
+  // Ссылка на фото (если загружено)
   const photo_url = req.file ? req.file.path : null;
 
   db.query(
     'INSERT INTO masters (full_name, code, phone, photo_url, is_active) VALUES (?, ?, ?, ?, 1)',
     [full_name, code || null, phone || null, photo_url],
     (err, result) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: err.message });
-      }
+      if (err) return res.status(500).json({ error: err.message + 'тут ошибка' });
       res.status(201).json({ id: result.insertId, full_name, photo_url });
     }
   );
