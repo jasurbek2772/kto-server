@@ -6,8 +6,9 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // 1. Настройка Cloudinary (подтягивает переменные из Railway Variables)
+// Настройка Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME, // Проверь, чтобы в Railway было именно такое имя
+  cloud_name: process.env.CLOUDINARY_NAME,
   api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
