@@ -14,30 +14,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Статичные файлы
-// Позволяет открывать файлы по адресу /api/photo/...
-app.use('/api/photo', express.static(path.join(__dirname, 'uploads')));
 // Страница логина — публичная
-app.use('/login', express.static(path.join(__dirname, 'public/login')));
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/login/login.html'));
 });
+app.use('/login', express.static(path.join(__dirname, 'public/login')));
 
-// Защищённая админка — отдаём HTML, проверку делает JS
+// Защищённая админка
 app.use('/admin', express.static(path.join(__dirname, 'public')));
 
 // API — авторизация публичная
 app.use('/api/auth', authRouter);
 
-// API — мастера и заявки защищены (мобильное приложение использует без токена)
+// API — мастера, заявки, 1С (без авторизации — мобильное приложение)
 app.use('/api/masters',  mastersRouter);
 app.use('/api/requests', requestsRouter);
 app.use('/api/1c',       onecRouter);
 
-// Защищённые роуты только для админки
-app.use('/api/admin/masters',  authMiddleware, mastersRouter);
-app.use('/api/admin/requests', authMiddleware, requestsRouter);
-
+// Корневой роут
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'КТО API работает' }));
 
 const PORT = process.env.PORT || 4000;
