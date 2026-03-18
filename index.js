@@ -8,7 +8,7 @@ const mastersRouter  = require('./src/routes/masters');
 const requestsRouter = require('./src/routes/requests');
 const onecRouter     = require('./src/routes/onec');
 const authRouter     = require('./src/routes/auth');
-const authMiddleware = require('./src/middleware/auth');
+const authMiddleware = require('./src/routes/middleware/auth_middleware');
 
 const app = express();
 app.use(cors());
@@ -20,7 +20,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Страница логина — публичная
 app.use('/login', express.static(path.join(__dirname, 'public/login')));
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/login/index.html'));
+  res.sendFile(path.join(__dirname, 'public/login/login.html'));
 });
 
 // Защищённая админка — отдаём HTML, проверку делает JS
