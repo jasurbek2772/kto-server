@@ -53,7 +53,3 @@ router.put('/:id', (req, res) => {
 });
 
 module.exports = router;
-```
-
-Ctrl+A → удали всё → вставь → Ctrl+S → потом:
-```
