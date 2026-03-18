@@ -504,15 +504,17 @@ async function openRequest(id) {
   } else { workerSection.style.display = 'none'; }
 
   const photosGrid = document.getElementById('req-photos');
-  if (r.photos && r.photos.length > 0) {
-    photosGrid.innerHTML = r.photos.map(p => {
-      const url = p.filename.startsWith('http') ? p.filename : `/uploads/${p.filename}`;
-      return `
-      <div class="photo-item">
-        <img src="${url}" onclick="openLightbox('${url}')" onerror="this.parentElement.style.display='none'">
-      </div>`;
-    }).join('');
-  } else { photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>'; }
+if (r.photos && r.photos.length > 0) {
+  photosGrid.innerHTML = r.photos.map(p => {
+    const url = p.url || (p.filename.startsWith('http') ? p.filename : `/uploads/${p.filename}`);
+    return `
+    <div class="photo-item">
+      <img src="${url}" onclick="openLightbox('${url}')" onerror="this.parentElement.style.display='none'">
+    </div>`;
+  }).join('');
+} else {
+  photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>';
+}
 
   document.getElementById('modal-request').classList.add('open');
 }
