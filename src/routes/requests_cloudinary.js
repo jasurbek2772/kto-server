@@ -132,14 +132,31 @@ router.post('/:id/done', (req, res) => {
 });
 
 
+// Вспомогательная функция для конвертации даты DD.MM.YYYY в YYYY-MM-DD
+function formatDateForMySQL(dateStr) {
+  if (!dateStr) return null;
+  
+  // Если пришла строка вида "19.03.2026, 14:20:16", берем только первую часть
+  const cleanDate = dateStr.split(',')[0].trim(); 
+  
+  // Разбиваем по точкам
+  const parts = cleanDate.split('.');
+  if (parts.length === 3) {
+    // Собираем в формате YYYY-MM-DD
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  return dateStr; // Возвращаем как есть, если формат другой (на случай, если там уже ISO)
+}
+
 // ─────────────────────────────────────────
-// PUT /api/requests/:id — редактировать (из админки)
+// PUT /api/requests/:id — редактировать
 // ─────────────────────────────────────────
 router.put('/:id', upload.none(), (req, res) => {
-  console.log('PUT body:', req.body); // Полезно для отладки — проверим, что пришло
-
   const { category, address, branch, contact_person, deadline, dispatcher, content } = req.body;
   
+  // Преобразуем дедлайн перед сохранением
+  const formattedDeadline = formatDateForMySQL(deadline);
+
   db.query(
     `UPDATE requests SET
       category=?, address=?, branch=?, contact_person=?,
@@ -150,21 +167,20 @@ router.put('/:id', upload.none(), (req, res) => {
       address || null, 
       branch || null, 
       contact_person || null, 
-      deadline || null, 
+      formattedDeadline, // Используем исправленную дату
       dispatcher || null, 
       content || null, 
       req.params.id
     ],
     (err) => {
       if (err) {
-        console.error('Ошибка БД при обновлении заявки:', err); // Выводим ошибку сервера в консоль
+        console.error('Ошибка БД:', err);
         return res.status(500).json({ error: err.message });
       }
       res.json({ success: true });
     }
   );
 });
-
 // ─────────────────────────────────────────
 // POST /api/requests/:id/photos — загрузить фото в Cloudinary
 // ─────────────────────────────────────────
