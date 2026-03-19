@@ -131,19 +131,35 @@ router.post('/:id/done', (req, res) => {
   );
 });
 
+
 // ─────────────────────────────────────────
 // PUT /api/requests/:id — редактировать (из админки)
 // ─────────────────────────────────────────
-router.put('/:id', (req, res) => {
+router.put('/:id', upload.none(), (req, res) => {
+  console.log('PUT body:', req.body); // Полезно для отладки — проверим, что пришло
+
   const { category, address, branch, contact_person, deadline, dispatcher, content } = req.body;
+  
   db.query(
     `UPDATE requests SET
       category=?, address=?, branch=?, contact_person=?,
       deadline=?, dispatcher=?, content=?
      WHERE id=?`,
-    [category, address, branch, contact_person, deadline || null, dispatcher, content, req.params.id],
+    [
+      category || null, 
+      address || null, 
+      branch || null, 
+      contact_person || null, 
+      deadline || null, 
+      dispatcher || null, 
+      content || null, 
+      req.params.id
+    ],
     (err) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) {
+        console.error('Ошибка БД при обновлении заявки:', err); // Выводим ошибку сервера в консоль
+        return res.status(500).json({ error: err.message });
+      }
       res.json({ success: true });
     }
   );
