@@ -42,7 +42,7 @@ router.get('/all', (req, res) => {
 });
 
 // POST /api/masters — добавить мастера
-router.post('/', (req, res) => {
+router.post('/', upload.none(), async (req, res) => {
   console.log('POST body:', req.body); // ← добавь
   const { full_name, code, phone } = req.body;
   if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
