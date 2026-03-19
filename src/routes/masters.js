@@ -42,21 +42,45 @@ router.get('/all', (req, res) => {
 });
 
 // POST /api/masters — добавить мастера
-router.post('/', upload.none(), async (req, res) => {
-  console.log('POST body:', req.body); // ← добавь
+// POST /api/masters — добавить мастера
+router.post('/', upload.single('photo'), async (req, res) => {
+  console.log('POST body:', req.body); 
   const { full_name, code, phone } = req.body;
+
   if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
-  db.query(
-    'INSERT INTO masters (full_name, code, phone) VALUES (?, ?, ?)',
-    [full_name, code || null, phone || null],
-    (err, result) => {
-      if (err) {
-        console.error('DB error:', err); // ← добавь
-        return res.status(500).json({ error: err.message });
-      }
-      res.status(201).json({ id: result.insertId, full_name, code, phone });
+
+  try {
+    let photoUrl = null;
+
+    // Если при создании мастера сразу передали файл фото
+    if (req.file) {
+      const cloudinaryResult = await uploadToCloudinary(req.file.buffer, 'masters');
+      photoUrl = cloudinaryResult.secure_url;
     }
-  );
+
+    // Сохраняем в базу (с фото или без него)
+    // Обратите внимание: добавлено поле photo_url в запрос
+    db.query(
+      'INSERT INTO masters (full_name, code, phone, photo_url) VALUES (?, ?, ?, ?)',
+      [full_name, code || null, phone || null, photoUrl],
+      (err, result) => {
+        if (err) {
+          console.error('DB error:', err);
+          return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({ 
+          id: result.insertId, 
+          full_name, 
+          code, 
+          phone, 
+          photo_url: photoUrl 
+        });
+      }
+    );
+  } catch (e) {
+    console.error('Cloudinary upload error:', e);
+    res.status(500).json({ error: 'Ошибка загрузки фото: ' + e.message });
+  }
 });
 
 // POST /api/masters/:id/photo — загрузить/обновить фото мастера
