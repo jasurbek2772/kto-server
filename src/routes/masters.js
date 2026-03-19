@@ -43,13 +43,17 @@ router.get('/all', (req, res) => {
 
 // POST /api/masters — добавить мастера
 router.post('/', (req, res) => {
+  console.log('POST body:', req.body); // ← добавь
   const { full_name, code, phone } = req.body;
   if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
   db.query(
     'INSERT INTO masters (full_name, code, phone) VALUES (?, ?, ?)',
     [full_name, code || null, phone || null],
     (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) {
+        console.error('DB error:', err); // ← добавь
+        return res.status(500).json({ error: err.message });
+      }
       res.status(201).json({ id: result.insertId, full_name, code, phone });
     }
   );
