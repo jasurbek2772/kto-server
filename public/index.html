@@ -187,6 +187,11 @@
         <button class="filter-btn" onclick="setFilter('free',this)">Свободные</button>
         <button class="filter-btn" onclick="setFilter('taken',this)">В работе</button>
         <button class="filter-btn" onclick="setFilter('done',this)">Выполненные</button>
+        <input id="req-search" type="text" placeholder="Поиск..."
+               oninput="currentPage=1; renderRequests()"
+               style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+                      padding:4px 10px;font-size:11px;color:#e2e8f0;outline:none;width:160px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">↓ CSV</button>
         <button class="btn btn-ghost btn-sm" onclick="loadRequests()">Обновить</button>
       </div>
     </div>
@@ -194,6 +199,7 @@
       <thead><tr><th>Номер</th><th>Категория</th><th>Адрес</th><th>Срок</th><th>Мастер</th><th>Статус</th></tr></thead>
       <tbody id="requests-tbody"><tr><td colspan="6" class="empty">Загрузка...</td></tr></tbody>
     </table>
+    <div id="pagination" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-top:0.5px solid rgba(255,255,255,0.06);flex-wrap:wrap;"></div>
   </div>
 </div>
 
@@ -321,8 +327,72 @@
 <script>
 const API = '/api';
 let currentRequestId = null;
-let allRequests = [];
+let allRequests   = [];
 let currentFilter = 'all';
+let currentPage   = 1;
+const PAGE_SIZE   = 20;
+
+// ── XSS защита ───────────────────────────
+function esc(text) {
+  if (text === null || text === undefined) return '—';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── Цветные сроки ─────────────────────────
+function deadlineBadge(dateStr) {
+  if (!dateStr) return '<span style="color:#64748b">—</span>';
+  const diff = Math.ceil((new Date(dateStr) - new Date()) / 86400000);
+  if (diff < 0)   return `<span style="color:#f87171;font-weight:600">⚠ просрочено (${Math.abs(diff)}д)</span>`;
+  if (diff === 0) return `<span style="color:#f87171;font-weight:600">⚠ сегодня</span>`;
+  if (diff === 1) return `<span style="color:#fbbf24;font-weight:600">⚡ завтра</span>`;
+  if (diff <= 3)  return `<span style="color:#fb923c">${fmtShort(dateStr)} (${diff}д)</span>`;
+  return `<span style="color:#94a3b8">${fmtShort(dateStr)}</span>`;
+}
+
+// ── Экспорт CSV ───────────────────────────
+function exportCSV() {
+  const headers = ['Номер','Категория','Адрес','Филиал','Срок','Мастер','Статус','Дата создания'];
+  const statusMap = { free: 'Свободна', taken: 'В работе', done: 'Выполнено' };
+  const rows = allRequests.map(r => [
+    r.number_1c  || '',
+    r.category   || '',
+    (r.address   || '').replace(/"/g,'""'),
+    r.branch     || '',
+    r.deadline   ? new Date(r.deadline).toLocaleDateString('ru-RU') : '',
+    r.master_name|| '',
+    statusMap[r.status] || r.status,
+    r.created_at ? new Date(r.created_at).toLocaleString('ru-RU') : '',
+  ]);
+  const csv  = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `заявки_${new Date().toLocaleDateString('ru-RU')}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV скачан!');
+}
+
+// ── Пагинация ─────────────────────────────
+function gotoPage(p) {
+  const search = (document.getElementById('req-search')?.value || '').toLowerCase();
+  let data = allRequests;
+  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
+  if (search) data = data.filter(r =>
+    (r.number_1c||'').toLowerCase().includes(search) ||
+    (r.address||'').toLowerCase().includes(search) ||
+    (r.category||'').toLowerCase().includes(search) ||
+    (r.master_name||'').toLowerCase().includes(search)
+  );
+  const total = Math.ceil(data.length / PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderRequests();
+}
 
 // ── Проверка авторизации ──────────────────
 const token = localStorage.getItem('kto_token');
@@ -384,6 +454,7 @@ function showTab(name, btn) {
 
 function setFilter(f, btn) {
   currentFilter = f;
+  currentPage   = 1;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderRequests();
@@ -536,9 +607,7 @@ async function loadRequests() {
     const res = await apiFetch(`${API}/requests`, { headers: authHeaders() });
     if (!res) return;
     allRequests = await res.json();
-    document.getElementById('stat-total').textContent = allRequests.length;
-    document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
-    document.getElementById('stat-done').textContent  = allRequests.filter(r => r.status === 'done').length;
+    currentPage = 1;
     renderRequests();
   } catch(e) {
     document.getElementById('requests-tbody').innerHTML = '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
@@ -546,20 +615,67 @@ async function loadRequests() {
 }
 
 function renderRequests() {
-  const tbody = document.getElementById('requests-tbody');
-  let data = allRequests;
-  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>'; return; }
+  const tbody  = document.getElementById('requests-tbody');
+  const search = (document.getElementById('req-search')?.value || '').toLowerCase();
 
-  tbody.innerHTML = data.map(r => `
+  let data = allRequests;
+
+  // Фильтр по статусу
+  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
+
+  // Поиск с XSS защитой
+  if (search) {
+    data = data.filter(r =>
+      (r.number_1c  || '').toLowerCase().includes(search) ||
+      (r.address    || '').toLowerCase().includes(search) ||
+      (r.category   || '').toLowerCase().includes(search) ||
+      (r.master_name|| '').toLowerCase().includes(search)
+    );
+  }
+
+  // Обновляем статистику
+  document.getElementById('stat-total').textContent = allRequests.length;
+  document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
+  document.getElementById('stat-done').textContent  = allRequests.filter(r => r.status === 'done').length;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  // Пагинация
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const pageData = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // XSS-защищённый рендер
+  tbody.innerHTML = pageData.map(r => `
     <tr class="clickable" onclick="openRequest(${r.id})">
-      <td><b style="color:#60a5fa">#${r.number_1c || '—'}</b></td>
-      <td>${r.category || '—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</td>
-      <td>${fmtShort(r.deadline)}</td>
-      <td>${r.master_name || '<span style="color:#475569">не назначен</span>'}</td>
+      <td><b style="color:#60a5fa">#${esc(r.number_1c)}</b></td>
+      <td>${esc(r.category)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${esc(r.address)}">${esc(r.address)}</td>
+      <td>${deadlineBadge(r.deadline)}</td>
+      <td>${r.master_name ? esc(r.master_name) : '<span style="color:#475569">не назначен</span>'}</td>
       <td>${statusBadge(r.status)}</td>
     </tr>`).join('');
+
+  // Пагинация кнопки
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+
+  let btns = `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
+      btns += `<button class="btn btn-sm ${i===currentPage?'btn-primary':'btn-ghost'}" onclick="gotoPage(${i})">${i}</button>`;
+    } else if (Math.abs(i - currentPage) === 2) {
+      btns += `<span style="color:#64748b;padding:0 2px">…</span>`;
+    }
+  }
+  btns += `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  btns += `<span style="font-size:11px;color:#64748b;margin-left:6px">${data.length} заявок</span>`;
+  pg.innerHTML = btns;
 }
 
 // ── КАРТОЧКА ЗАЯВКИ ───────────────────────
