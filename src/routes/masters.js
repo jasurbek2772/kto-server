@@ -19,7 +19,7 @@ function uploadToCloudinary(buffer, folder) {
   });
 }
 
-// GET /api/masters — только активные
+// GET /api/masters — только активные (для приложения, БЕЗ pin)
 router.get('/', (req, res) => {
   db.query(
     'SELECT id, full_name, code, phone, photo_url FROM masters WHERE is_active = 1 ORDER BY full_name',
@@ -30,10 +30,10 @@ router.get('/', (req, res) => {
   );
 });
 
-// GET /api/masters/all — все мастера
+// GET /api/masters/all — все мастера (для админки, включает pin)
 router.get('/all', (req, res) => {
   db.query(
-    'SELECT id, full_name, code, phone, photo_url, is_active FROM masters ORDER BY full_name',
+    'SELECT id, full_name, code, phone, photo_url, is_active, pin FROM masters ORDER BY full_name',
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
@@ -42,48 +42,30 @@ router.get('/all', (req, res) => {
 });
 
 // POST /api/masters — добавить мастера
-// POST /api/masters — добавить мастера
 router.post('/', upload.single('photo'), async (req, res) => {
-  console.log('POST body:', req.body); 
   const { full_name, code, phone } = req.body;
-
   if (!full_name) return res.status(400).json({ error: 'full_name обязателен' });
 
   try {
     let photoUrl = null;
-
-    // Если при создании мастера сразу передали файл фото
     if (req.file) {
-      const cloudinaryResult = await uploadToCloudinary(req.file.buffer, 'masters');
-      photoUrl = cloudinaryResult.secure_url;
+      const result = await uploadToCloudinary(req.file.buffer, 'masters');
+      photoUrl = result.secure_url;
     }
-
-    // Сохраняем в базу (с фото или без него)
-    // Обратите внимание: добавлено поле photo_url в запрос
     db.query(
       'INSERT INTO masters (full_name, code, phone, photo_url) VALUES (?, ?, ?, ?)',
       [full_name, code || null, phone || null, photoUrl],
       (err, result) => {
-        if (err) {
-          console.error('DB error:', err);
-          return res.status(500).json({ error: err.message });
-        }
-        res.status(201).json({ 
-          id: result.insertId, 
-          full_name, 
-          code, 
-          phone, 
-          photo_url: photoUrl 
-        });
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ id: result.insertId, full_name, code, phone, photo_url: photoUrl });
       }
     );
   } catch (e) {
-    console.error('Cloudinary upload error:', e);
-    res.status(500).json({ error: 'Ошибка загрузки фото: ' + e.message });
+    res.status(500).json({ error: 'Ошибка: ' + e.message });
   }
 });
 
-// POST /api/masters/:id/photo — загрузить/обновить фото мастера
+// POST /api/masters/:id/photo — загрузить фото
 router.post('/:id/photo', upload.single('photo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Файл не передан' });
   try {
@@ -101,17 +83,31 @@ router.post('/:id/photo', upload.single('photo'), async (req, res) => {
   }
 });
 
-// PUT /api/masters/:id — изменить данные мастера
+// PUT /api/masters/:id — изменить данные (включая PIN)
 router.put('/:id', (req, res) => {
-  const { full_name, phone, code, is_active } = req.body;
+  const { full_name, phone, code, is_active, pin } = req.body;
   db.query(
-    'UPDATE masters SET full_name=?, phone=?, code=?, is_active=? WHERE id=?',
-    [full_name, phone, code, is_active, req.params.id],
+    'UPDATE masters SET full_name=?, phone=?, code=?, is_active=?, pin=? WHERE id=?',
+    [full_name, phone, code, is_active, pin || null, req.params.id],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
     }
   );
+});
+
+// POST /api/masters/:id/verify-pin — проверить PIN
+router.post('/:id/verify-pin', (req, res) => {
+  const { pin } = req.body;
+  if (!pin) return res.status(400).json({ error: 'PIN обязателен' });
+
+  db.query('SELECT pin FROM masters WHERE id = ?', [req.params.id], (err, rows) => {
+    if (err)          return res.status(500).json({ error: err.message });
+    if (!rows.length) return res.status(404).json({ error: 'Мастер не найден' });
+    if (!rows[0].pin) return res.status(400).json({ error: 'PIN не установлен. Обратитесь к администратору.' });
+    if (rows[0].pin !== pin) return res.status(401).json({ error: 'Неверный PIN' });
+    res.json({ success: true });
+  });
 });
 
 module.exports = router;
