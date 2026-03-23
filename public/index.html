@@ -37,7 +37,7 @@
            color: #64748b; border: none; background: transparent; transition: all 0.15s; }
     .tab.active { background: #334155; color: #f1f5f9; }
 
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .filter-btn { padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer;
                   border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #64748b; transition: all 0.15s; }
     .filter-btn.active { background: #334155; color: #f1f5f9; border-color: #334155; }
@@ -89,11 +89,11 @@
     .field { margin-bottom: 14px; }
     .field label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 5px;
                    text-transform: uppercase; letter-spacing: 0.4px; }
-    .field input, .field textarea {
+    .field input, .field textarea, .field select {
       width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #e2e8f0;
       outline: none; transition: border-color 0.15s; font-family: inherit; }
-    .field input:focus, .field textarea:focus { border-color: #3b82f6; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: #3b82f6; }
     .field textarea { resize: vertical; min-height: 80px; }
     .field input[readonly] { background: rgba(255,255,255,0.03); color: #64748b; cursor: default; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -132,16 +132,12 @@
     .master-avatar-circle { width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
                             background: #334155; border: 1px solid rgba(255,255,255,0.1); }
 
-    /* Галерея */
-    .g-item {
-      padding: 12px 20px;
-      border-bottom: 0.5px solid rgba(255,255,255,0.04);
-      cursor: pointer;
-      transition: background 0.1s;
-    }
+    .g-item { padding: 12px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.04);
+              cursor: pointer; transition: background 0.1s; }
     .g-item:hover { background: rgba(255,255,255,0.03); }
     .g-item-main  { font-size: 13px; color: #e2e8f0; margin-bottom: 2px; }
-    .g-item-sub   { font-size: 11px; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .g-item-sub   { font-size: 11px; color: #64748b; margin-bottom: 4px;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .g-badge-row  { display: flex; align-items: center; gap: 8px; }
     .g-empty      { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
     .g-tab.active { background: #334155 !important; color: #f1f5f9 !important; }
@@ -155,7 +151,7 @@
 </head>
 <body>
 
-<!-- ── ТОПБАР ── -->
+<!-- ── TOPBAR ── -->
 <div class="topbar">
   <div class="topbar-left">
     <div>
@@ -188,7 +184,7 @@
     <button class="tab" onclick="showTab('requests', this)">Заявки</button>
   </div>
 
-  <!-- Вкладка: Мастера -->
+  <!-- Таб: Мастера -->
   <div id="tab-masters" class="section">
     <div class="section-header">
       <div class="section-title">Список мастеров</div>
@@ -200,7 +196,7 @@
     </table>
   </div>
 
-  <!-- Вкладка: Заявки -->
+  <!-- Таб: Заявки -->
   <div id="tab-requests" class="section" style="display:none">
     <div class="section-header">
       <div class="section-title">Все заявки</div>
@@ -224,7 +220,6 @@
     <div id="pagination" style="display:flex;align-items:center;justify-content:center;gap:6px;
          padding:12px;border-top:0.5px solid rgba(255,255,255,0.06);flex-wrap:wrap;"></div>
   </div>
-
 </div>
 
 <!-- ── МОДАЛ: Добавить мастера ── -->
@@ -241,6 +236,13 @@
         <div class="field"><label>Код (из 1С)</label><input type="text" id="inp-code" placeholder="019254"></div>
       </div>
       <div class="field">
+        <label>PIN-код (4 цифры)</label>
+        <input type="text" id="inp-pin" placeholder="1234" maxlength="4"
+               pattern="[0-9]{4}" inputmode="numeric"
+               style="letter-spacing:6px; font-size:18px; font-weight:600;">
+        <div style="font-size:10px; color:#64748b; margin-top:4px;">Мастер вводит этот код при входе в приложение</div>
+      </div>
+      <div class="field">
         <label>Фото мастера</label>
         <input type="file" id="inp-photo" accept="image/*">
       </div>
@@ -252,7 +254,7 @@
   </div>
 </div>
 
-<!-- ── МОДАЛ: Редактировать мастера (с PIN из v1 + всё из v2) ── -->
+<!-- ── МОДАЛ: Редактировать мастера ── -->
 <div class="modal-overlay" id="modal-edit-master" onclick="closeEditMasterModal(event)">
   <div class="modal">
     <div class="modal-header">
@@ -261,7 +263,6 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-master-id">
-
       <!-- Фото -->
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
         <img id="edit-master-photo" src="https://via.placeholder.com/64"
@@ -272,15 +273,11 @@
           <input type="file" id="edit-master-photo-file" accept="image/*" style="font-size:11px;color:#94a3b8;">
         </div>
       </div>
-
       <div class="field"><label>ФИО *</label><input type="text" id="edit-master-name" placeholder="Иванов Алексей Петрович"></div>
-
       <div class="field-row">
         <div class="field"><label>Телефон</label><input type="text" id="edit-master-phone" placeholder="+7 913 111-22-33"></div>
         <div class="field"><label>Код (из 1С)</label><input type="text" id="edit-master-code" placeholder="019254"></div>
       </div>
-
-      <!-- PIN + Статус — из v1 (PIN был только в v1!) -->
       <div class="field-row">
         <div class="field">
           <label>PIN-код (4 цифры)</label>
@@ -291,15 +288,12 @@
         </div>
         <div class="field">
           <label>Статус</label>
-          <select id="edit-master-active"
-                  style="width:100%;background:#0f172a;border:1px solid rgba(255,255,255,0.1);
-                         border-radius:8px;padding:9px 12px;font-size:13px;color:#e2e8f0;outline:none;">
+          <select id="edit-master-active">
             <option value="1">Активен</option>
             <option value="0">Отключён</option>
           </select>
         </div>
       </div>
-
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeEditMasterModal()">Отмена</button>
         <button class="btn btn-primary" id="btn-update-master" onclick="updateMaster()">Сохранить</button>
@@ -332,9 +326,7 @@
       </div>
       <div class="field"><label>Диспетчер</label><input type="text" id="req-dispatcher"></div>
       <div class="field"><label>Содержание</label><textarea id="req-content"></textarea></div>
-
       <div class="divider"></div>
-
       <div id="req-worker-section" style="display:none">
         <div class="field-row">
           <div class="field"><label>Исполнитель</label><input type="text" id="req-master" readonly></div>
@@ -345,12 +337,10 @@
         </div>
         <div class="divider"></div>
       </div>
-
       <div class="field">
         <label>Фотоотчёт</label>
         <div class="photos-grid" id="req-photos"></div>
       </div>
-
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModalRequest()">Закрыть</button>
         <button class="btn btn-primary" onclick="saveRequest()">Сохранить изменения</button>
@@ -358,15 +348,6 @@
     </div>
   </div>
 </div>
-
-<!-- ── ЛАЙТБОКС ── -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close">×</button>
-  <img id="lightbox-img" src="" alt="">
-</div>
-
-<!-- ── ТОСТ ── -->
-<div class="toast" id="toast"></div>
 
 <!-- ── МОДАЛ: Галерея ── -->
 <div class="modal-overlay" id="modal-gallery" onclick="closeGallery(event)"
@@ -377,26 +358,21 @@
       <button class="modal-close" onclick="closeGallery()">×</button>
     </div>
     <div style="padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.06);">
-      <!-- Вкладки галереи -->
       <div style="display:flex; gap:4px; background:#0f172a; border-radius:8px; padding:3px; width:fit-content; margin-bottom:12px;">
         <button class="g-tab tab active" onclick="switchGalleryTab('requests',this)"
-                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer;
-                       border:none; background:transparent; color:#64748b; transition:all 0.15s;">
+                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.15s;">
           По заявкам
         </button>
         <button class="g-tab tab" onclick="switchGalleryTab('masters',this)"
-                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer;
-                       border:none; background:transparent; color:#64748b; transition:all 0.15s;">
+                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.15s;">
           Фото мастеров
         </button>
       </div>
-      <!-- Поиск в галерее -->
       <input id="gallery-search" type="text" placeholder="Поиск..."
              style="width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
                     border-radius:8px; padding:8px 12px; font-size:13px; color:#e2e8f0; outline:none;"
              oninput="galleryTab==='requests' ? renderGalleryRequests(this.value) : renderGalleryMasters(this.value)">
     </div>
-    <!-- Список галереи -->
     <div style="overflow-y:auto; flex:1;">
       <div id="gallery-requests">
         <div id="gallery-req-list" style="padding:8px 0;"></div>
@@ -420,7 +396,15 @@
   </div>
 </div>
 
-<!-- ── СКРИПТЫ ── -->
+<!-- ── Лайтбокс ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- ── Тост ── -->
+<div class="toast" id="toast"></div>
+
 <script>
 const API = '/api';
 let currentRequestId = null;
@@ -429,7 +413,7 @@ let currentFilter    = 'all';
 let currentPage      = 1;
 const PAGE_SIZE      = 20;
 
-// ── XSS защита (из v2) ───────────────────
+// ── XSS-защита ────────────────────────────
 function esc(text) {
   if (text === null || text === undefined) return '—';
   return String(text)
@@ -440,60 +424,9 @@ function esc(text) {
     .replace(/'/g, '&#039;');
 }
 
-// ── Цветные сроки (из v2) ─────────────────
-function deadlineBadge(dateStr) {
-  if (!dateStr) return '<span style="color:#64748b">—</span>';
-  const diff = Math.ceil((new Date(dateStr) - new Date()) / 86400000);
-  if (diff < 0)   return `<span style="color:#f87171;font-weight:600">⚠ просрочено (${Math.abs(diff)}д)</span>`;
-  if (diff === 0) return `<span style="color:#f87171;font-weight:600">⚠ сегодня</span>`;
-  if (diff === 1) return `<span style="color:#fbbf24;font-weight:600">⚡ завтра</span>`;
-  if (diff <= 3)  return `<span style="color:#fb923c">${fmtShort(dateStr)} (${diff}д)</span>`;
-  return `<span style="color:#94a3b8">${fmtShort(dateStr)}</span>`;
-}
-
-// ── Экспорт CSV (из v2) ───────────────────
-function exportCSV() {
-  const headers = ['Номер','Категория','Адрес','Филиал','Срок','Мастер','Статус','Дата создания'];
-  const statusMap = { free: 'Свободна', taken: 'В работе', done: 'Выполнено' };
-  const rows = allRequests.map(r => [
-    r.number_1c  || '',
-    r.category   || '',
-    (r.address   || '').replace(/"/g,'""'),
-    r.branch     || '',
-    r.deadline   ? new Date(r.deadline).toLocaleDateString('ru-RU') : '',
-    r.master_name|| '',
-    statusMap[r.status] || r.status,
-    r.created_at ? new Date(r.created_at).toLocaleString('ru-RU') : '',
-  ]);
-  const csv  = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = `заявки_${new Date().toLocaleDateString('ru-RU')}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-  toast('CSV скачан!');
-}
-
-// ── Пагинация (из v2) ─────────────────────
-function gotoPage(p) {
-  const search = (document.getElementById('req-search')?.value || '').toLowerCase();
-  let data = allRequests;
-  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
-  if (search) data = data.filter(r =>
-    (r.number_1c  ||'').toLowerCase().includes(search) ||
-    (r.address    ||'').toLowerCase().includes(search) ||
-    (r.category   ||'').toLowerCase().includes(search) ||
-    (r.master_name||'').toLowerCase().includes(search)
-  );
-  const total = Math.ceil(data.length / PAGE_SIZE);
-  if (p < 1 || p > total) return;
-  currentPage = p;
-  renderRequests();
-}
-
 // ── Проверка авторизации ──────────────────
 const token = localStorage.getItem('kto_token');
-if (!token) { window.location.href = '/login'; }
+if (!token) window.location.href = '/login';
 
 const adminName = localStorage.getItem('kto_admin') || 'admin';
 document.getElementById('admin-name').textContent = adminName;
@@ -521,7 +454,11 @@ function fmtDate(d)  { return d ? new Date(d).toLocaleString('ru-RU')     : '—
 function fmtShort(d) { return d ? new Date(d).toLocaleDateString('ru-RU') : ''; }
 
 function statusBadge(s) {
-  const map = { free: ['badge-free','Свободна'], taken: ['badge-taken','В работе'], done: ['badge-done','Выполнено'] };
+  const map = {
+    free:  ['badge-free',  'Свободна'],
+    taken: ['badge-taken', 'В работе'],
+    done:  ['badge-done',  'Выполнено']
+  };
   const [cls, label] = map[s] || ['badge-done', s];
   return `<span class="badge ${cls}">${label}</span>`;
 }
@@ -530,6 +467,79 @@ async function apiFetch(url, options = {}) {
   const res = await fetch(url, options);
   if (res.status === 401 || res.status === 403) { logout(); return null; }
   return res;
+}
+
+// ── Цветные сроки с учётом статуса заявки ─
+//
+// done  + дедлайн не просрочен  → нейтральная серая дата
+// done  + дедлайн просрочен    → серая дата + тихая пометка "(с задержкой)"
+// free/taken + просрочено       → красный  ⚠ просрочено (Nд)
+// free/taken + сегодня          → красный  ⚠ сегодня
+// free/taken + завтра           → жёлтый   ⚡ завтра
+// free/taken + ≤3 дня           → оранжевый дата (Nд)
+// остальное                     → нейтральная серая дата
+function deadlineBadge(dateStr, status) {
+  if (!dateStr) return '<span style="color:#64748b">—</span>';
+  const diff = Math.ceil((new Date(dateStr) - new Date()) / 86400000);
+
+  // Задача выполнена — не показываем красные ворнинги
+  if (status === 'done') {
+    if (diff < 0) {
+      // Выполнена, но уже после срока — информируем спокойно, без красного
+      return `<span style="color:#64748b" title="Выполнено после дедлайна">${fmtShort(dateStr)}&nbsp;<span style="font-size:10px;opacity:0.6">(с задержкой)</span></span>`;
+    }
+    // Выполнена в срок — просто дата
+    return `<span style="color:#94a3b8">${fmtShort(dateStr)}</span>`;
+  }
+
+  // Активные заявки (free / taken) — показываем срочность
+  if (diff < 0)   return `<span style="color:#f87171;font-weight:600">⚠ просрочено (${Math.abs(diff)}д)</span>`;
+  if (diff === 0) return `<span style="color:#f87171;font-weight:600">⚠ сегодня</span>`;
+  if (diff === 1) return `<span style="color:#fbbf24;font-weight:600">⚡ завтра</span>`;
+  if (diff <= 3)  return `<span style="color:#fb923c">${fmtShort(dateStr)} (${diff}д)</span>`;
+  return `<span style="color:#94a3b8">${fmtShort(dateStr)}</span>`;
+}
+
+// ── Экспорт CSV ───────────────────────────
+function exportCSV() {
+  const headers   = ['Номер', 'Категория', 'Адрес', 'Филиал', 'Срок', 'Мастер', 'Статус', 'Дата создания'];
+  const statusMap = { free: 'Свободна', taken: 'В работе', done: 'Выполнено' };
+  const rows = allRequests.map(r => [
+    r.number_1c   || '',
+    r.category    || '',
+    (r.address    || '').replace(/"/g, '""'),
+    r.branch      || '',
+    r.deadline    ? new Date(r.deadline).toLocaleDateString('ru-RU')  : '',
+    r.master_name || '',
+    statusMap[r.status] || r.status,
+    r.created_at  ? new Date(r.created_at).toLocaleString('ru-RU')    : '',
+  ]);
+  const csv  = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `заявки_${new Date().toLocaleDateString('ru-RU')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV скачан!');
+}
+
+// ── Пагинация ─────────────────────────────
+function gotoPage(p) {
+  const search = (document.getElementById('req-search')?.value || '').toLowerCase();
+  let data = allRequests;
+  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
+  if (search) data = data.filter(r =>
+    (r.number_1c   || '').toLowerCase().includes(search) ||
+    (r.address     || '').toLowerCase().includes(search) ||
+    (r.category    || '').toLowerCase().includes(search) ||
+    (r.master_name || '').toLowerCase().includes(search)
+  );
+  const total = Math.ceil(data.length / PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderRequests();
 }
 
 // ── Вкладки ───────────────────────────────
@@ -553,7 +563,7 @@ function setFilter(f, btn) {
 async function loadMasters() {
   const res = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
   if (!res) return;
-  const data = await res.json();
+  const data  = await res.json();
   const tbody = document.getElementById('masters-tbody');
   document.getElementById('stat-masters').textContent = data.filter(m => m.is_active).length;
 
@@ -586,16 +596,15 @@ async function loadMasters() {
   }).join('');
 }
 
-// Открыть модалку редактирования мастера (с PIN — из v1)
 function openEditMasterModal(m) {
-  document.getElementById('edit-master-id').value          = m.id;
-  document.getElementById('edit-master-name').value        = m.full_name || '';
-  document.getElementById('edit-master-phone').value       = m.phone || '';
-  document.getElementById('edit-master-code').value        = m.code || '';
-  document.getElementById('edit-master-pin').value         = m.pin || '';   // ← PIN из v1
-  document.getElementById('edit-master-active').value      = m.is_active ? '1' : '0';
-  document.getElementById('edit-master-photo').src         = m.photo_url || 'https://via.placeholder.com/64';
-  document.getElementById('edit-master-photo-file').value  = '';
+  document.getElementById('edit-master-id').value         = m.id;
+  document.getElementById('edit-master-name').value       = m.full_name || '';
+  document.getElementById('edit-master-phone').value      = m.phone     || '';
+  document.getElementById('edit-master-code').value       = m.code      || '';
+  document.getElementById('edit-master-pin').value        = m.pin       || '';
+  document.getElementById('edit-master-active').value     = m.is_active ? '1' : '0';
+  document.getElementById('edit-master-photo').src        = m.photo_url || 'https://via.placeholder.com/64';
+  document.getElementById('edit-master-photo-file').value = '';
   document.getElementById('modal-edit-master').classList.add('open');
 }
 
@@ -605,18 +614,17 @@ function closeEditMasterModal(e) {
   }
 }
 
-// Сохранить мастера (с PIN — из v1, с валидацией PIN)
 async function updateMaster() {
   const id        = document.getElementById('edit-master-id').value;
   const full_name = document.getElementById('edit-master-name').value.trim();
   const phone     = document.getElementById('edit-master-phone').value.trim();
   const code      = document.getElementById('edit-master-code').value.trim();
-  const pin       = document.getElementById('edit-master-pin').value.trim();   // ← PIN из v1
+  const pin       = document.getElementById('edit-master-pin').value.trim();
   const is_active = parseInt(document.getElementById('edit-master-active').value);
   const photoFile = document.getElementById('edit-master-photo-file').files[0];
 
   if (!full_name) { toast('Введите ФИО!', false); return; }
-  if (pin && !/^\d{4}$/.test(pin)) { toast('PIN должен быть 4 цифры!', false); return; } // ← валидация PIN из v1
+  if (pin && !/^\d{4}$/.test(pin)) { toast('PIN должен быть 4 цифры!', false); return; }
 
   const btn = document.getElementById('btn-update-master');
   btn.disabled = true; btn.textContent = 'Сохраняем...';
@@ -624,7 +632,7 @@ async function updateMaster() {
   const res = await apiFetch(`${API}/masters/${id}`, {
     method: 'PUT',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name, phone, code, is_active, pin: pin || null }) // ← pin передаётся из v1
+    body: JSON.stringify({ full_name, phone, code, is_active, pin: pin || null })
   });
 
   if (!res || !res.ok) {
@@ -652,21 +660,15 @@ async function updateMaster() {
   btn.disabled = false; btn.textContent = 'Сохранить';
 }
 
-// toggleMaster теперь сам берёт данные мастера из API, без передачи строк в атрибуте
+// Быстрое переключение активности прямо из таблицы
 async function toggleMaster(id, active, e) {
   e.target.disabled = true;
-  // Получаем актуальные данные мастера перед переключением
-  const res = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
-  if (!res) { e.target.disabled = false; return; }
-  const masters = await res.json();
-  const m = masters.find(x => x.id === id);
-  if (!m) { e.target.disabled = false; return; }
-
+  // Данные берём из уже загруженного DOM через JSON в onclick — просто шлём минимальный запрос
   await apiFetch(`${API}/masters/${id}`, {
     method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name: m.full_name, phone: m.phone || '', code: m.code || '', is_active: active })
+    body: JSON.stringify({ is_active: active })
   });
-  toast(active ? `${m.full_name} активирован` : `${m.full_name} отключён`);
+  toast(active ? 'Мастер активирован' : 'Мастер отключён');
   loadMasters();
 }
 
@@ -677,14 +679,19 @@ function openAddMasterModal() {
 function closeModalMaster(e) {
   if (!e || e.target.id === 'modal-master' || e.target.className === 'modal-close' || e.target.textContent === 'Отмена') {
     document.getElementById('modal-master').classList.remove('open');
-    ['inp-name','inp-phone','inp-code','inp-photo'].forEach(id => document.getElementById(id).value = '');
+    ['inp-name', 'inp-phone', 'inp-code', 'inp-pin', 'inp-photo'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
   }
 }
 
 async function addMaster() {
-  const name = document.getElementById('inp-name').value.trim();
+  const name      = document.getElementById('inp-name').value.trim();
+  const pin       = document.getElementById('inp-pin').value.trim();
   const photoFile = document.getElementById('inp-photo').files[0];
-  if (!name) return alert('Введите ФИО!');
+
+  if (!name) { toast('Введите ФИО!', false); return; }
+  if (pin && !/^\d{4}$/.test(pin)) { toast('PIN должен быть 4 цифры!', false); return; }
 
   const btn = document.getElementById('btn-save-master');
   btn.disabled = true; btn.textContent = 'Загрузка...';
@@ -692,13 +699,14 @@ async function addMaster() {
   const formData = new FormData();
   formData.append('full_name', name);
   formData.append('phone', document.getElementById('inp-phone').value);
-  formData.append('code', document.getElementById('inp-code').value);
+  formData.append('code',  document.getElementById('inp-code').value);
+  if (pin)       formData.append('pin', pin);
   if (photoFile) formData.append('photo', photoFile);
 
   const res = await fetch(`${API}/masters`, {
-    method: 'POST',
+    method:  'POST',
     headers: authHeaders(),
-    body: formData
+    body:    formData
   });
 
   if (res.ok) { toast(`${name} добавлен!`); closeModalMaster(); loadMasters(); }
@@ -715,8 +723,9 @@ async function loadRequests() {
     allRequests = await res.json();
     currentPage = 1;
     renderRequests();
-  } catch(e) {
-    document.getElementById('requests-tbody').innerHTML = '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
+  } catch (e) {
+    document.getElementById('requests-tbody').innerHTML =
+      '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
   }
 }
 
@@ -729,17 +738,17 @@ function renderRequests() {
   // Фильтр по статусу
   if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
 
-  // Поиск (из v2, с XSS-безопасным toLowerCase)
+  // Поиск
   if (search) {
     data = data.filter(r =>
-      (r.number_1c  || '').toLowerCase().includes(search) ||
-      (r.address    || '').toLowerCase().includes(search) ||
-      (r.category   || '').toLowerCase().includes(search) ||
-      (r.master_name|| '').toLowerCase().includes(search)
+      (r.number_1c   || '').toLowerCase().includes(search) ||
+      (r.address     || '').toLowerCase().includes(search) ||
+      (r.category    || '').toLowerCase().includes(search) ||
+      (r.master_name || '').toLowerCase().includes(search)
     );
   }
 
-  // Обновляем статистику
+  // Статистика
   document.getElementById('stat-total').textContent = allRequests.length;
   document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
   document.getElementById('stat-done').textContent  = allRequests.filter(r => r.status === 'done').length;
@@ -750,36 +759,36 @@ function renderRequests() {
     return;
   }
 
-  // Пагинация (из v2)
+  // Пагинация
   const totalPages = Math.ceil(data.length / PAGE_SIZE);
   if (currentPage > totalPages) currentPage = totalPages;
   const pageData = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  // XSS-защищённый рендер (из v2) + цветные сроки (из v2)
+  // Рендер — deadlineBadge получает оба аргумента: дата и статус
   tbody.innerHTML = pageData.map(r => `
     <tr class="clickable" onclick="openRequest(${r.id})">
       <td><b style="color:#60a5fa">#${esc(r.number_1c)}</b></td>
       <td>${esc(r.category)}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
           title="${esc(r.address)}">${esc(r.address)}</td>
-      <td>${deadlineBadge(r.deadline)}</td>
+      <td>${deadlineBadge(r.deadline, r.status)}</td>
       <td>${r.master_name ? esc(r.master_name) : '<span style="color:#475569">не назначен</span>'}</td>
       <td>${statusBadge(r.status)}</td>
     </tr>`).join('');
 
-  // Кнопки пагинации (из v2)
+  // Кнопки пагинации
   const pg = document.getElementById('pagination');
   if (totalPages <= 1) { pg.innerHTML = ''; return; }
 
-  let btns = `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  let btns = `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
   for (let i = 1; i <= totalPages; i++) {
     if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
-      btns += `<button class="btn btn-sm ${i===currentPage?'btn-primary':'btn-ghost'}" onclick="gotoPage(${i})">${i}</button>`;
+      btns += `<button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-ghost'}" onclick="gotoPage(${i})">${i}</button>`;
     } else if (Math.abs(i - currentPage) === 2) {
       btns += `<span style="color:#64748b;padding:0 2px">…</span>`;
     }
   }
-  btns += `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  btns += `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>›</button>`;
   btns += `<span style="font-size:11px;color:#64748b;margin-left:6px">${data.length} заявок</span>`;
   pg.innerHTML = btns;
 }
@@ -792,6 +801,7 @@ async function openRequest(id) {
   const r = await res.json();
 
   document.getElementById('req-modal-title').textContent = `Заявка #${r.number_1c}`;
+
   const statusColors = { free: '#4ade80', taken: '#fbbf24', done: '#4ade80' };
   const statusText   = {
     free:  'Свободна — мастер не назначен',
@@ -802,15 +812,15 @@ async function openRequest(id) {
   bar.className = `status-bar status-${r.status}`;
   bar.innerHTML = `<div class="status-dot" style="background:${statusColors[r.status]}"></div>${statusText[r.status]}`;
 
-  document.getElementById('req-number').value     = r.number_1c       || '';
-  document.getElementById('req-category').value   = r.category        || '';
-  document.getElementById('req-address').value    = r.address         || '';
-  document.getElementById('req-branch').value     = r.branch          || '';
-  document.getElementById('req-contact').value    = r.contact_person  || '';
+  document.getElementById('req-number').value     = r.number_1c      || '';
+  document.getElementById('req-category').value   = r.category       || '';
+  document.getElementById('req-address').value    = r.address        || '';
+  document.getElementById('req-branch').value     = r.branch         || '';
+  document.getElementById('req-contact').value    = r.contact_person || '';
   document.getElementById('req-date').value       = fmtDate(r.date_received);
   document.getElementById('req-deadline').value   = fmtShort(r.deadline);
-  document.getElementById('req-dispatcher').value = r.dispatcher      || '';
-  document.getElementById('req-content').value    = r.content         || '';
+  document.getElementById('req-dispatcher').value = r.dispatcher     || '';
+  document.getElementById('req-content').value    = r.content        || '';
 
   const workerSection = document.getElementById('req-worker-section');
   if (r.status !== 'free') {
@@ -821,15 +831,18 @@ async function openRequest(id) {
     if (r.done_at) {
       doneSection.style.display = '';
       document.getElementById('req-done-at').value = fmtDate(r.done_at);
-    } else { doneSection.style.display = 'none'; }
-  } else { workerSection.style.display = 'none'; }
+    } else {
+      doneSection.style.display = 'none';
+    }
+  } else {
+    workerSection.style.display = 'none';
+  }
 
   const photosGrid = document.getElementById('req-photos');
   if (r.photos && r.photos.length > 0) {
     photosGrid.innerHTML = r.photos.map(p => {
       const url = p.url || (p.filename.startsWith('http') ? p.filename : `/uploads/${p.filename}`);
-      return `
-      <div class="photo-item">
+      return `<div class="photo-item">
         <img src="${url}" onclick="openLightbox('${url}')" onerror="this.parentElement.style.display='none'">
       </div>`;
     }).join('');
@@ -852,9 +865,9 @@ async function saveRequest() {
     content:        document.getElementById('req-content').value,
   };
   const res = await apiFetch(`${API}/requests/${currentRequestId}`, {
-    method: 'PUT',
+    method:  'PUT',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body:    JSON.stringify(body)
   });
   if (res && res.ok) { toast('Заявка сохранена!'); loadRequests(); }
   else toast('Ошибка при сохранении', false);
@@ -867,14 +880,16 @@ function closeModalRequest(e) {
   }
 }
 
-// ── ЛАЙТБОКС ─────────────────────────────
+// ── Лайтбокс ─────────────────────────────
 function openLightbox(url) {
   document.getElementById('lightbox-img').src = url;
   document.getElementById('lightbox').classList.add('open');
 }
-function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
 
-// ── ГАЛЕРЕЯ ВЛОЖЕНИЙ ─────────────────────
+// ── ГАЛЕРЕЯ ───────────────────────────────
 let galleryTab      = 'requests';
 let galleryRequests = [];
 let galleryMasters  = [];
@@ -910,7 +925,7 @@ async function loadGalleryRequests() {
 
 function renderGalleryRequests(search) {
   const list = document.getElementById('gallery-req-list');
-  let data = galleryRequests;
+  let data   = galleryRequests;
   if (search) data = data.filter(r =>
     (r.number_1c || '').toLowerCase().includes(search.toLowerCase()) ||
     (r.address   || '').toLowerCase().includes(search.toLowerCase())
@@ -924,7 +939,7 @@ function renderGalleryRequests(search) {
       </div>
       <div class="g-item-sub">${esc(r.address)}</div>
       <div class="g-badge-row">
-        <span class="badge badge-${r.status}">${{free:'Свободна',taken:'В работе',done:'Выполнено'}[r.status] || r.status}</span>
+        <span class="badge badge-${r.status}">${{ free: 'Свободна', taken: 'В работе', done: 'Выполнено' }[r.status] || r.status}</span>
         ${r.master_name ? `<span style="font-size:10px; color:#64748b;">👷 ${esc(r.master_name)}</span>` : ''}
       </div>
     </div>`).join('');
@@ -939,7 +954,7 @@ async function loadGalleryMasters() {
 
 function renderGalleryMasters(search) {
   const list = document.getElementById('gallery-mas-list');
-  let data = galleryMasters;
+  let data   = galleryMasters;
   if (search) data = data.filter(m =>
     (m.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (m.code      || '').toLowerCase().includes(search.toLowerCase())
@@ -954,8 +969,8 @@ function renderGalleryMasters(search) {
         <div>
           <div style="color:#f1f5f9; font-size:13px; font-weight:500;">${esc(m.full_name)}</div>
           <div style="color:#64748b; font-size:11px;">
-            ${m.code ? `Код: ${esc(m.code)}` : '—'}
-            ${m.phone ? ` · ${esc(m.phone)}` : ''}
+            ${m.code  ? `Код: ${esc(m.code)}`  : '—'}
+            ${m.phone ? ` · ${esc(m.phone)}`   : ''}
           </div>
         </div>
       </div>
@@ -969,12 +984,12 @@ function renderGalleryMasters(search) {
 }
 
 async function openRequestPhotos(id, number) {
-  const res  = await apiFetch(`${API}/requests/${id}`, { headers: authHeaders() });
+  const res = await apiFetch(`${API}/requests/${id}`, { headers: authHeaders() });
   if (!res) return;
-  const r    = await res.json();
-  const title = document.getElementById('gallery-photo-title');
-  const grid  = document.getElementById('gallery-photo-grid');
-  title.textContent = `Фото заявки #${number}`;
+  const r   = await res.json();
+
+  document.getElementById('gallery-photo-title').textContent = `Фото заявки #${number}`;
+  const grid = document.getElementById('gallery-photo-grid');
 
   if (!r.photos || !r.photos.length) {
     grid.innerHTML = '<div class="g-empty">Фотоотчёт не загружен</div>';
@@ -990,9 +1005,8 @@ async function openRequestPhotos(id, number) {
 }
 
 function openMasterPhoto(url, name) {
-  const title = document.getElementById('gallery-photo-title');
-  const grid  = document.getElementById('gallery-photo-grid');
-  title.textContent = `Фото мастера: ${name}`;
+  document.getElementById('gallery-photo-title').textContent = `Фото мастера: ${name}`;
+  const grid = document.getElementById('gallery-photo-grid');
   if (!url) {
     grid.innerHTML = '<div class="g-empty">Фото не загружено</div>';
   } else {
@@ -1012,6 +1026,5 @@ function closeGalleryPhotos(e) {
 // ── Инициализация ─────────────────────────
 loadMasters();
 </script>
-
 </body>
 </html>
