@@ -128,8 +128,23 @@
 
     .empty { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
     .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 16px 0; }
-    
-    .master-avatar-circle { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #334155; border: 1px solid rgba(255,255,255,0.1); }
+
+    .master-avatar-circle { width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+                            background: #334155; border: 1px solid rgba(255,255,255,0.1); }
+
+    /* Галерея */
+    .g-item {
+      padding: 12px 20px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .g-item:hover { background: rgba(255,255,255,0.03); }
+    .g-item-main  { font-size: 13px; color: #e2e8f0; margin-bottom: 2px; }
+    .g-item-sub   { font-size: 11px; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .g-badge-row  { display: flex; align-items: center; gap: 8px; }
+    .g-empty      { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
+    .g-tab.active { background: #334155 !important; color: #f1f5f9 !important; }
 
     @media (max-width: 600px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
@@ -140,6 +155,7 @@
 </head>
 <body>
 
+<!-- ── ТОПБАР ── -->
 <div class="topbar">
   <div class="topbar-left">
     <div>
@@ -155,7 +171,10 @@
   </div>
 </div>
 
+<!-- ── КОНТЕНТ ── -->
 <div class="container">
+
+  <!-- Статистика -->
   <div class="stats">
     <div class="stat-card"><div class="stat-num" id="stat-masters">—</div><div class="stat-label">Мастеров активно</div></div>
     <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Заявок всего</div></div>
@@ -163,11 +182,13 @@
     <div class="stat-card"><div class="stat-num" id="stat-done" style="color:#4ade80">—</div><div class="stat-label">Выполнено</div></div>
   </div>
 
+  <!-- Вкладки -->
   <div class="tabs">
     <button class="tab active" onclick="showTab('masters', this)">Мастера</button>
     <button class="tab" onclick="showTab('requests', this)">Заявки</button>
   </div>
 
+  <!-- Вкладка: Мастера -->
   <div id="tab-masters" class="section">
     <div class="section-header">
       <div class="section-title">Список мастеров</div>
@@ -179,6 +200,7 @@
     </table>
   </div>
 
+  <!-- Вкладка: Заявки -->
   <div id="tab-requests" class="section" style="display:none">
     <div class="section-header">
       <div class="section-title">Все заявки</div>
@@ -187,6 +209,11 @@
         <button class="filter-btn" onclick="setFilter('free',this)">Свободные</button>
         <button class="filter-btn" onclick="setFilter('taken',this)">В работе</button>
         <button class="filter-btn" onclick="setFilter('done',this)">Выполненные</button>
+        <input id="req-search" type="text" placeholder="Поиск..."
+               oninput="currentPage=1; renderRequests()"
+               style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+                      padding:4px 10px;font-size:11px;color:#e2e8f0;outline:none;width:160px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">↓ CSV</button>
         <button class="btn btn-ghost btn-sm" onclick="loadRequests()">Обновить</button>
       </div>
     </div>
@@ -194,9 +221,13 @@
       <thead><tr><th>Номер</th><th>Категория</th><th>Адрес</th><th>Срок</th><th>Мастер</th><th>Статус</th></tr></thead>
       <tbody id="requests-tbody"><tr><td colspan="6" class="empty">Загрузка...</td></tr></tbody>
     </table>
+    <div id="pagination" style="display:flex;align-items:center;justify-content:center;gap:6px;
+         padding:12px;border-top:0.5px solid rgba(255,255,255,0.06);flex-wrap:wrap;"></div>
   </div>
+
 </div>
 
+<!-- ── МОДАЛ: Добавить мастера ── -->
 <div class="modal-overlay" id="modal-master" onclick="closeModalMaster(event)">
   <div class="modal">
     <div class="modal-header">
@@ -221,7 +252,7 @@
   </div>
 </div>
 
-<!-- Модалка: редактировать мастера -->
+<!-- ── МОДАЛ: Редактировать мастера (с PIN из v1 + всё из v2) ── -->
 <div class="modal-overlay" id="modal-edit-master" onclick="closeEditMasterModal(event)">
   <div class="modal">
     <div class="modal-header">
@@ -230,6 +261,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-master-id">
+
       <!-- Фото -->
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
         <img id="edit-master-photo" src="https://via.placeholder.com/64"
@@ -240,11 +272,15 @@
           <input type="file" id="edit-master-photo-file" accept="image/*" style="font-size:11px;color:#94a3b8;">
         </div>
       </div>
+
       <div class="field"><label>ФИО *</label><input type="text" id="edit-master-name" placeholder="Иванов Алексей Петрович"></div>
+
       <div class="field-row">
         <div class="field"><label>Телефон</label><input type="text" id="edit-master-phone" placeholder="+7 913 111-22-33"></div>
         <div class="field"><label>Код (из 1С)</label><input type="text" id="edit-master-code" placeholder="019254"></div>
       </div>
+
+      <!-- PIN + Статус — из v1 (PIN был только в v1!) -->
       <div class="field-row">
         <div class="field">
           <label>PIN-код (4 цифры)</label>
@@ -256,12 +292,14 @@
         <div class="field">
           <label>Статус</label>
           <select id="edit-master-active"
-                  style="width:100%;background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;font-size:13px;color:#e2e8f0;outline:none;">
+                  style="width:100%;background:#0f172a;border:1px solid rgba(255,255,255,0.1);
+                         border-radius:8px;padding:9px 12px;font-size:13px;color:#e2e8f0;outline:none;">
             <option value="1">Активен</option>
             <option value="0">Отключён</option>
           </select>
         </div>
       </div>
+
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeEditMasterModal()">Отмена</button>
         <button class="btn btn-primary" id="btn-update-master" onclick="updateMaster()">Сохранить</button>
@@ -270,6 +308,7 @@
   </div>
 </div>
 
+<!-- ── МОДАЛ: Карточка заявки ── -->
 <div class="modal-overlay" id="modal-request" onclick="closeModalRequest(event)">
   <div class="modal">
     <div class="modal-header">
@@ -320,35 +359,149 @@
   </div>
 </div>
 
+<!-- ── ЛАЙТБОКС ── -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close">×</button>
   <img id="lightbox-img" src="" alt="">
 </div>
 
+<!-- ── ТОСТ ── -->
 <div class="toast" id="toast"></div>
 
+<!-- ── МОДАЛ: Галерея ── -->
+<div class="modal-overlay" id="modal-gallery" onclick="closeGallery(event)"
+     style="align-items:flex-start; padding-top:40px;">
+  <div class="modal" style="max-width:640px; max-height:85vh; display:flex; flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title">Вложения</div>
+      <button class="modal-close" onclick="closeGallery()">×</button>
+    </div>
+    <div style="padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.06);">
+      <!-- Вкладки галереи -->
+      <div style="display:flex; gap:4px; background:#0f172a; border-radius:8px; padding:3px; width:fit-content; margin-bottom:12px;">
+        <button class="g-tab tab active" onclick="switchGalleryTab('requests',this)"
+                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer;
+                       border:none; background:transparent; color:#64748b; transition:all 0.15s;">
+          По заявкам
+        </button>
+        <button class="g-tab tab" onclick="switchGalleryTab('masters',this)"
+                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer;
+                       border:none; background:transparent; color:#64748b; transition:all 0.15s;">
+          Фото мастеров
+        </button>
+      </div>
+      <!-- Поиск в галерее -->
+      <input id="gallery-search" type="text" placeholder="Поиск..."
+             style="width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                    border-radius:8px; padding:8px 12px; font-size:13px; color:#e2e8f0; outline:none;"
+             oninput="galleryTab==='requests' ? renderGalleryRequests(this.value) : renderGalleryMasters(this.value)">
+    </div>
+    <!-- Список галереи -->
+    <div style="overflow-y:auto; flex:1;">
+      <div id="gallery-requests">
+        <div id="gallery-req-list" style="padding:8px 0;"></div>
+      </div>
+      <div id="gallery-masters" style="display:none;">
+        <div id="gallery-mas-list" style="padding:8px 0;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── МОДАЛ: Просмотр фото ── -->
+<div class="modal-overlay" id="modal-gallery-photos" onclick="closeGalleryPhotos(event)">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <div class="modal-title" id="gallery-photo-title">Фото</div>
+      <button class="modal-close" onclick="closeGalleryPhotos()">×</button>
+    </div>
+    <div style="padding:20px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center;"
+         id="gallery-photo-grid"></div>
+  </div>
+</div>
+
+<!-- ── СКРИПТЫ ── -->
 <script>
 const API = '/api';
 let currentRequestId = null;
-let allRequests = [];
-let currentFilter = 'all';
+let allRequests      = [];
+let currentFilter    = 'all';
+let currentPage      = 1;
+const PAGE_SIZE      = 20;
+
+// ── XSS защита (из v2) ───────────────────
+function esc(text) {
+  if (text === null || text === undefined) return '—';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── Цветные сроки (из v2) ─────────────────
+function deadlineBadge(dateStr) {
+  if (!dateStr) return '<span style="color:#64748b">—</span>';
+  const diff = Math.ceil((new Date(dateStr) - new Date()) / 86400000);
+  if (diff < 0)   return `<span style="color:#f87171;font-weight:600">⚠ просрочено (${Math.abs(diff)}д)</span>`;
+  if (diff === 0) return `<span style="color:#f87171;font-weight:600">⚠ сегодня</span>`;
+  if (diff === 1) return `<span style="color:#fbbf24;font-weight:600">⚡ завтра</span>`;
+  if (diff <= 3)  return `<span style="color:#fb923c">${fmtShort(dateStr)} (${diff}д)</span>`;
+  return `<span style="color:#94a3b8">${fmtShort(dateStr)}</span>`;
+}
+
+// ── Экспорт CSV (из v2) ───────────────────
+function exportCSV() {
+  const headers = ['Номер','Категория','Адрес','Филиал','Срок','Мастер','Статус','Дата создания'];
+  const statusMap = { free: 'Свободна', taken: 'В работе', done: 'Выполнено' };
+  const rows = allRequests.map(r => [
+    r.number_1c  || '',
+    r.category   || '',
+    (r.address   || '').replace(/"/g,'""'),
+    r.branch     || '',
+    r.deadline   ? new Date(r.deadline).toLocaleDateString('ru-RU') : '',
+    r.master_name|| '',
+    statusMap[r.status] || r.status,
+    r.created_at ? new Date(r.created_at).toLocaleString('ru-RU') : '',
+  ]);
+  const csv  = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `заявки_${new Date().toLocaleDateString('ru-RU')}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV скачан!');
+}
+
+// ── Пагинация (из v2) ─────────────────────
+function gotoPage(p) {
+  const search = (document.getElementById('req-search')?.value || '').toLowerCase();
+  let data = allRequests;
+  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
+  if (search) data = data.filter(r =>
+    (r.number_1c  ||'').toLowerCase().includes(search) ||
+    (r.address    ||'').toLowerCase().includes(search) ||
+    (r.category   ||'').toLowerCase().includes(search) ||
+    (r.master_name||'').toLowerCase().includes(search)
+  );
+  const total = Math.ceil(data.length / PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderRequests();
+}
 
 // ── Проверка авторизации ──────────────────
 const token = localStorage.getItem('kto_token');
-if (!token) {
-  window.location.href = '/login';
-}
+if (!token) { window.location.href = '/login'; }
 
-// Показываем имя админа
 const adminName = localStorage.getItem('kto_admin') || 'admin';
 document.getElementById('admin-name').textContent = adminName;
 
-// Заголовок с токеном
 function authHeaders() {
   return { 'Authorization': `Bearer ${token}` };
 }
 
-// Выход
 function logout() {
   localStorage.removeItem('kto_token');
   localStorage.removeItem('kto_admin');
@@ -375,10 +528,7 @@ function statusBadge(s) {
 
 async function apiFetch(url, options = {}) {
   const res = await fetch(url, options);
-  if (res.status === 401 || res.status === 403) {
-    logout();
-    return null;
-  }
+  if (res.status === 401 || res.status === 403) { logout(); return null; }
   return res;
 }
 
@@ -393,6 +543,7 @@ function showTab(name, btn) {
 
 function setFilter(f, btn) {
   currentFilter = f;
+  currentPage   = 1;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderRequests();
@@ -406,7 +557,10 @@ async function loadMasters() {
   const tbody = document.getElementById('masters-tbody');
   document.getElementById('stat-masters').textContent = data.filter(m => m.is_active).length;
 
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>'; return; }
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Мастера не найдены</td></tr>';
+    return;
+  }
 
   tbody.innerHTML = data.map(m => {
     const photoSrc = m.photo_url || 'https://via.placeholder.com/40';
@@ -416,32 +570,32 @@ async function loadMasters() {
         <div style="display:flex; align-items:center; gap:10px">
           <img src="${photoSrc}" class="master-avatar-circle"
                onerror="this.src='https://via.placeholder.com/40'">
-          <b style="color:#f1f5f9">${m.full_name}</b>
+          <b style="color:#f1f5f9">${esc(m.full_name)}</b>
         </div>
       </td>
-      <td>${m.phone || '—'}</td>
-      <td>${m.code  || '—'}</td>
+      <td>${esc(m.phone)}</td>
+      <td>${esc(m.code)}</td>
       <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span></td>
       <td style="display:flex; gap:6px; flex-wrap:wrap;">
         <button class="btn btn-ghost btn-sm" onclick='openEditMasterModal(${JSON.stringify(m)})'>Изменить</button>
         ${m.is_active
-          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,'${m.full_name}','${m.phone||''}','${m.code||''}',event)">Откл.</button>`
-          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,'${m.full_name}','${m.phone||''}','${m.code||''}',event)">Вкл.</button>`}
+          ? `<button class="btn btn-danger btn-sm" onclick="toggleMaster(${m.id},0,event)">Откл.</button>`
+          : `<button class="btn btn-success btn-sm" onclick="toggleMaster(${m.id},1,event)">Вкл.</button>`}
       </td>
     </tr>`;
   }).join('');
 }
 
-// Открыть модалку редактирования мастера
+// Открыть модалку редактирования мастера (с PIN — из v1)
 function openEditMasterModal(m) {
-  document.getElementById('edit-master-id').value         = m.id;
-  document.getElementById('edit-master-name').value       = m.full_name || '';
-  document.getElementById('edit-master-phone').value      = m.phone || '';
-  document.getElementById('edit-master-code').value       = m.code || '';
-  document.getElementById('edit-master-pin').value        = m.pin || '';
-  document.getElementById('edit-master-active').value     = m.is_active ? '1' : '0';
-  document.getElementById('edit-master-photo').src        = m.photo_url || 'https://via.placeholder.com/64';
-  document.getElementById('edit-master-photo-file').value = '';
+  document.getElementById('edit-master-id').value          = m.id;
+  document.getElementById('edit-master-name').value        = m.full_name || '';
+  document.getElementById('edit-master-phone').value       = m.phone || '';
+  document.getElementById('edit-master-code').value        = m.code || '';
+  document.getElementById('edit-master-pin').value         = m.pin || '';   // ← PIN из v1
+  document.getElementById('edit-master-active').value      = m.is_active ? '1' : '0';
+  document.getElementById('edit-master-photo').src         = m.photo_url || 'https://via.placeholder.com/64';
+  document.getElementById('edit-master-photo-file').value  = '';
   document.getElementById('modal-edit-master').classList.add('open');
 }
 
@@ -451,17 +605,18 @@ function closeEditMasterModal(e) {
   }
 }
 
+// Сохранить мастера (с PIN — из v1, с валидацией PIN)
 async function updateMaster() {
   const id        = document.getElementById('edit-master-id').value;
   const full_name = document.getElementById('edit-master-name').value.trim();
   const phone     = document.getElementById('edit-master-phone').value.trim();
   const code      = document.getElementById('edit-master-code').value.trim();
-  const pin       = document.getElementById('edit-master-pin').value.trim();
+  const pin       = document.getElementById('edit-master-pin').value.trim();   // ← PIN из v1
   const is_active = parseInt(document.getElementById('edit-master-active').value);
   const photoFile = document.getElementById('edit-master-photo-file').files[0];
 
   if (!full_name) { toast('Введите ФИО!', false); return; }
-  if (pin && !/^\d{4}$/.test(pin)) { toast('PIN должен быть 4 цифры!', false); return; }
+  if (pin && !/^\d{4}$/.test(pin)) { toast('PIN должен быть 4 цифры!', false); return; } // ← валидация PIN из v1
 
   const btn = document.getElementById('btn-update-master');
   btn.disabled = true; btn.textContent = 'Сохраняем...';
@@ -469,7 +624,7 @@ async function updateMaster() {
   const res = await apiFetch(`${API}/masters/${id}`, {
     method: 'PUT',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name, phone, code, is_active, pin: pin || null })
+    body: JSON.stringify({ full_name, phone, code, is_active, pin: pin || null }) // ← pin передаётся из v1
   });
 
   if (!res || !res.ok) {
@@ -497,19 +652,28 @@ async function updateMaster() {
   btn.disabled = false; btn.textContent = 'Сохранить';
 }
 
-async function toggleMaster(id, active, name, phone, code, e) {
+// toggleMaster теперь сам берёт данные мастера из API, без передачи строк в атрибуте
+async function toggleMaster(id, active, e) {
   e.target.disabled = true;
+  // Получаем актуальные данные мастера перед переключением
+  const res = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
+  if (!res) { e.target.disabled = false; return; }
+  const masters = await res.json();
+  const m = masters.find(x => x.id === id);
+  if (!m) { e.target.disabled = false; return; }
+
   await apiFetch(`${API}/masters/${id}`, {
     method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name: name, phone, code, is_active: active })
+    body: JSON.stringify({ full_name: m.full_name, phone: m.phone || '', code: m.code || '', is_active: active })
   });
-  toast(active ? `${name} активирован` : `${name} отключён`);
+  toast(active ? `${m.full_name} активирован` : `${m.full_name} отключён`);
   loadMasters();
 }
 
 function openAddMasterModal() {
   document.getElementById('modal-master').classList.add('open');
 }
+
 function closeModalMaster(e) {
   if (!e || e.target.id === 'modal-master' || e.target.className === 'modal-close' || e.target.textContent === 'Отмена') {
     document.getElementById('modal-master').classList.remove('open');
@@ -533,13 +697,13 @@ async function addMaster() {
 
   const res = await fetch(`${API}/masters`, {
     method: 'POST',
-    headers: authHeaders(), // Автоматически поставит multipart/form-data
+    headers: authHeaders(),
     body: formData
   });
 
   if (res.ok) { toast(`${name} добавлен!`); closeModalMaster(); loadMasters(); }
   else toast('Ошибка при добавлении', false);
-  
+
   btn.disabled = false; btn.textContent = 'Добавить';
 }
 
@@ -549,9 +713,7 @@ async function loadRequests() {
     const res = await apiFetch(`${API}/requests`, { headers: authHeaders() });
     if (!res) return;
     allRequests = await res.json();
-    document.getElementById('stat-total').textContent = allRequests.length;
-    document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
-    document.getElementById('stat-done').textContent  = allRequests.filter(r => r.status === 'done').length;
+    currentPage = 1;
     renderRequests();
   } catch(e) {
     document.getElementById('requests-tbody').innerHTML = '<tr><td colspan="6" class="empty">Ошибка загрузки</td></tr>';
@@ -559,20 +721,67 @@ async function loadRequests() {
 }
 
 function renderRequests() {
-  const tbody = document.getElementById('requests-tbody');
-  let data = allRequests;
-  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>'; return; }
+  const tbody  = document.getElementById('requests-tbody');
+  const search = (document.getElementById('req-search')?.value || '').toLowerCase();
 
-  tbody.innerHTML = data.map(r => `
+  let data = allRequests;
+
+  // Фильтр по статусу
+  if (currentFilter !== 'all') data = data.filter(r => r.status === currentFilter);
+
+  // Поиск (из v2, с XSS-безопасным toLowerCase)
+  if (search) {
+    data = data.filter(r =>
+      (r.number_1c  || '').toLowerCase().includes(search) ||
+      (r.address    || '').toLowerCase().includes(search) ||
+      (r.category   || '').toLowerCase().includes(search) ||
+      (r.master_name|| '').toLowerCase().includes(search)
+    );
+  }
+
+  // Обновляем статистику
+  document.getElementById('stat-total').textContent = allRequests.length;
+  document.getElementById('stat-free').textContent  = allRequests.filter(r => r.status === 'free').length;
+  document.getElementById('stat-done').textContent  = allRequests.filter(r => r.status === 'done').length;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Заявок нет</td></tr>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  // Пагинация (из v2)
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const pageData = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // XSS-защищённый рендер (из v2) + цветные сроки (из v2)
+  tbody.innerHTML = pageData.map(r => `
     <tr class="clickable" onclick="openRequest(${r.id})">
-      <td><b style="color:#60a5fa">#${r.number_1c || '—'}</b></td>
-      <td>${r.category || '—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</td>
-      <td>${fmtShort(r.deadline)}</td>
-      <td>${r.master_name || '<span style="color:#475569">не назначен</span>'}</td>
+      <td><b style="color:#60a5fa">#${esc(r.number_1c)}</b></td>
+      <td>${esc(r.category)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${esc(r.address)}">${esc(r.address)}</td>
+      <td>${deadlineBadge(r.deadline)}</td>
+      <td>${r.master_name ? esc(r.master_name) : '<span style="color:#475569">не назначен</span>'}</td>
       <td>${statusBadge(r.status)}</td>
     </tr>`).join('');
+
+  // Кнопки пагинации (из v2)
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+
+  let btns = `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
+      btns += `<button class="btn btn-sm ${i===currentPage?'btn-primary':'btn-ghost'}" onclick="gotoPage(${i})">${i}</button>`;
+    } else if (Math.abs(i - currentPage) === 2) {
+      btns += `<span style="color:#64748b;padding:0 2px">…</span>`;
+    }
+  }
+  btns += `<button class="btn btn-ghost btn-sm" onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  btns += `<span style="font-size:11px;color:#64748b;margin-left:6px">${data.length} заявок</span>`;
+  pg.innerHTML = btns;
 }
 
 // ── КАРТОЧКА ЗАЯВКИ ───────────────────────
@@ -593,15 +802,15 @@ async function openRequest(id) {
   bar.className = `status-bar status-${r.status}`;
   bar.innerHTML = `<div class="status-dot" style="background:${statusColors[r.status]}"></div>${statusText[r.status]}`;
 
-  document.getElementById('req-number').value     = r.number_1c        || '';
-  document.getElementById('req-category').value   = r.category         || '';
-  document.getElementById('req-address').value    = r.address          || '';
-  document.getElementById('req-branch').value     = r.branch           || '';
-  document.getElementById('req-contact').value    = r.contact_person   || '';
+  document.getElementById('req-number').value     = r.number_1c       || '';
+  document.getElementById('req-category').value   = r.category        || '';
+  document.getElementById('req-address').value    = r.address         || '';
+  document.getElementById('req-branch').value     = r.branch          || '';
+  document.getElementById('req-contact').value    = r.contact_person  || '';
   document.getElementById('req-date').value       = fmtDate(r.date_received);
   document.getElementById('req-deadline').value   = fmtShort(r.deadline);
-  document.getElementById('req-dispatcher').value = r.dispatcher       || '';
-  document.getElementById('req-content').value    = r.content          || '';
+  document.getElementById('req-dispatcher').value = r.dispatcher      || '';
+  document.getElementById('req-content').value    = r.content         || '';
 
   const workerSection = document.getElementById('req-worker-section');
   if (r.status !== 'free') {
@@ -616,17 +825,17 @@ async function openRequest(id) {
   } else { workerSection.style.display = 'none'; }
 
   const photosGrid = document.getElementById('req-photos');
-if (r.photos && r.photos.length > 0) {
-  photosGrid.innerHTML = r.photos.map(p => {
-    const url = p.url || (p.filename.startsWith('http') ? p.filename : `/uploads/${p.filename}`);
-    return `
-    <div class="photo-item">
-      <img src="${url}" onclick="openLightbox('${url}')" onerror="this.parentElement.style.display='none'">
-    </div>`;
-  }).join('');
-} else {
-  photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>';
-}
+  if (r.photos && r.photos.length > 0) {
+    photosGrid.innerHTML = r.photos.map(p => {
+      const url = p.url || (p.filename.startsWith('http') ? p.filename : `/uploads/${p.filename}`);
+      return `
+      <div class="photo-item">
+        <img src="${url}" onclick="openLightbox('${url}')" onerror="this.parentElement.style.display='none'">
+      </div>`;
+    }).join('');
+  } else {
+    photosGrid.innerHTML = '<div class="photo-empty">Фотоотчёт не загружен</div>';
+  }
 
   document.getElementById('modal-request').classList.add('open');
 }
@@ -634,16 +843,17 @@ if (r.photos && r.photos.length > 0) {
 async function saveRequest() {
   if (!currentRequestId) return;
   const body = {
-    category: document.getElementById('req-category').value,
-    address: document.getElementById('req-address').value,
-    branch: document.getElementById('req-branch').value,
+    category:       document.getElementById('req-category').value,
+    address:        document.getElementById('req-address').value,
+    branch:         document.getElementById('req-branch').value,
     contact_person: document.getElementById('req-contact').value,
-    deadline: document.getElementById('req-deadline').value,
-    dispatcher: document.getElementById('req-dispatcher').value,
-    content: document.getElementById('req-content').value,
+    deadline:       document.getElementById('req-deadline').value,
+    dispatcher:     document.getElementById('req-dispatcher').value,
+    content:        document.getElementById('req-content').value,
   };
   const res = await apiFetch(`${API}/requests/${currentRequestId}`, {
-    method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, 
+    method: 'PUT',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   if (res && res.ok) { toast('Заявка сохранена!'); loadRequests(); }
@@ -657,6 +867,7 @@ function closeModalRequest(e) {
   }
 }
 
+// ── ЛАЙТБОКС ─────────────────────────────
 function openLightbox(url) {
   document.getElementById('lightbox-img').src = url;
   document.getElementById('lightbox').classList.add('open');
@@ -664,9 +875,9 @@ function openLightbox(url) {
 function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
 
 // ── ГАЛЕРЕЯ ВЛОЖЕНИЙ ─────────────────────
-let galleryTab        = 'requests';
-let galleryRequests   = [];
-let galleryMasters    = [];
+let galleryTab      = 'requests';
+let galleryRequests = [];
+let galleryMasters  = [];
 
 async function openGallery() {
   document.getElementById('modal-gallery').classList.add('open');
@@ -690,13 +901,10 @@ function switchGalleryTab(tab, btn) {
   else renderGalleryRequests('');
 }
 
-// Загрузка заявок с фото
 async function loadGalleryRequests() {
   const res  = await apiFetch(`${API}/requests`, { headers: authHeaders() });
   if (!res) return;
-  const data = await res.json();
-  // Только заявки у которых есть фото — загрузим по одной
-  galleryRequests = data;
+  galleryRequests = await res.json();
   renderGalleryRequests('');
 }
 
@@ -709,20 +917,19 @@ function renderGalleryRequests(search) {
   );
   if (!data.length) { list.innerHTML = '<div class="g-empty">Заявок не найдено</div>'; return; }
   list.innerHTML = data.map(r => `
-    <div class="g-item" onclick="openRequestPhotos(${r.id}, '${r.number_1c}')">
+    <div class="g-item" onclick="openRequestPhotos(${r.id}, '${esc(r.number_1c)}')">
       <div class="g-item-main">
-        <span style="color:#60a5fa; font-weight:600;">#${r.number_1c || '—'}</span>
-        <span style="color:#94a3b8; font-size:11px; margin-left:8px;">${r.category || '—'}</span>
+        <span style="color:#60a5fa; font-weight:600;">#${esc(r.number_1c)}</span>
+        <span style="color:#94a3b8; font-size:11px; margin-left:8px;">${esc(r.category)}</span>
       </div>
-      <div class="g-item-sub">${r.address || '—'}</div>
+      <div class="g-item-sub">${esc(r.address)}</div>
       <div class="g-badge-row">
-        <span class="badge badge-${r.status}">${{free:'Свободна',taken:'В работе',done:'Выполнено'}[r.status]||r.status}</span>
-        ${r.master_name ? `<span style="font-size:10px; color:#64748b;">👷 ${r.master_name}</span>` : ''}
+        <span class="badge badge-${r.status}">${{free:'Свободна',taken:'В работе',done:'Выполнено'}[r.status] || r.status}</span>
+        ${r.master_name ? `<span style="font-size:10px; color:#64748b;">👷 ${esc(r.master_name)}</span>` : ''}
       </div>
     </div>`).join('');
 }
 
-// Загрузка мастеров
 async function loadGalleryMasters() {
   const res  = await apiFetch(`${API}/masters/all`, { headers: authHeaders() });
   if (!res) return;
@@ -739,34 +946,34 @@ function renderGalleryMasters(search) {
   );
   if (!data.length) { list.innerHTML = '<div class="g-empty">Мастера не найдены</div>'; return; }
   list.innerHTML = data.map(m => `
-    <div class="g-item" onclick="openMasterPhoto('${m.photo_url || ''}', '${m.full_name}')">
+    <div class="g-item" onclick="openMasterPhoto('${m.photo_url || ''}', '${esc(m.full_name)}')">
       <div style="display:flex; align-items:center; gap:10px;">
         <img src="${m.photo_url || 'https://via.placeholder.com/36'}"
              style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.1);"
              onerror="this.src='https://via.placeholder.com/36'">
         <div>
-          <div style="color:#f1f5f9; font-size:13px; font-weight:500;">${m.full_name}</div>
+          <div style="color:#f1f5f9; font-size:13px; font-weight:500;">${esc(m.full_name)}</div>
           <div style="color:#64748b; font-size:11px;">
-            ${m.code ? `Код: ${m.code}` : '—'}
-            ${m.phone ? ` · ${m.phone}` : ''}
+            ${m.code ? `Код: ${esc(m.code)}` : '—'}
+            ${m.phone ? ` · ${esc(m.phone)}` : ''}
           </div>
         </div>
       </div>
       <div style="margin-top:4px;">
         <span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Активен' : 'Отключён'}</span>
-        ${m.photo_url ? '<span style="font-size:10px; color:#4ade80; margin-left:6px;">📷 Есть фото</span>' : '<span style="font-size:10px; color:#475569; margin-left:6px;">Нет фото</span>'}
+        ${m.photo_url
+          ? '<span style="font-size:10px; color:#4ade80; margin-left:6px;">📷 Есть фото</span>'
+          : '<span style="font-size:10px; color:#475569; margin-left:6px;">Нет фото</span>'}
       </div>
     </div>`).join('');
 }
 
-// Открыть фото заявки
 async function openRequestPhotos(id, number) {
   const res  = await apiFetch(`${API}/requests/${id}`, { headers: authHeaders() });
   if (!res) return;
   const r    = await res.json();
-
-  const title  = document.getElementById('gallery-photo-title');
-  const grid   = document.getElementById('gallery-photo-grid');
+  const title = document.getElementById('gallery-photo-title');
+  const grid  = document.getElementById('gallery-photo-grid');
   title.textContent = `Фото заявки #${number}`;
 
   if (!r.photos || !r.photos.length) {
@@ -782,7 +989,6 @@ async function openRequestPhotos(id, number) {
   document.getElementById('modal-gallery-photos').classList.add('open');
 }
 
-// Открыть фото мастера
 function openMasterPhoto(url, name) {
   const title = document.getElementById('gallery-photo-title');
   const grid  = document.getElementById('gallery-photo-grid');
@@ -803,72 +1009,9 @@ function closeGalleryPhotos(e) {
   }
 }
 
+// ── Инициализация ─────────────────────────
 loadMasters();
 </script>
 
-<!-- ── МОДАЛ: ГАЛЕРЕЯ ── -->
-<div class="modal-overlay" id="modal-gallery" onclick="closeGallery(event)"
-     style="align-items:flex-start; padding-top:40px;">
-  <div class="modal" style="max-width:640px; max-height:85vh; display:flex; flex-direction:column;">
-    <div class="modal-header">
-      <div class="modal-title">Вложения</div>
-      <button class="modal-close" onclick="closeGallery()">×</button>
-    </div>
-    <div style="padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.06);">
-      <!-- Вкладки -->
-      <div style="display:flex; gap:4px; background:#0f172a; border-radius:8px; padding:3px; width:fit-content; margin-bottom:12px;">
-        <button class="g-tab tab active" onclick="switchGalleryTab('requests',this)"
-                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.15s;">
-          По заявкам
-        </button>
-        <button class="g-tab tab" onclick="switchGalleryTab('masters',this)"
-                style="padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.15s;">
-          Фото мастеров
-        </button>
-      </div>
-      <!-- Поиск -->
-      <input id="gallery-search" type="text" placeholder="Поиск..."
-             style="width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
-                    border-radius:8px; padding:8px 12px; font-size:13px; color:#e2e8f0; outline:none;"
-             oninput="galleryTab==='requests' ? renderGalleryRequests(this.value) : renderGalleryMasters(this.value)">
-    </div>
-    <!-- Список -->
-    <div style="overflow-y:auto; flex:1;">
-      <div id="gallery-requests">
-        <div id="gallery-req-list" style="padding:8px 0;"></div>
-      </div>
-      <div id="gallery-masters" style="display:none;">
-        <div id="gallery-mas-list" style="padding:8px 0;"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── МОДАЛ: ПРОСМОТР ФОТО ── -->
-<div class="modal-overlay" id="modal-gallery-photos" onclick="closeGalleryPhotos(event)">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header">
-      <div class="modal-title" id="gallery-photo-title">Фото</div>
-      <button class="modal-close" onclick="closeGalleryPhotos()">×</button>
-    </div>
-    <div style="padding:20px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center;"
-         id="gallery-photo-grid"></div>
-  </div>
-</div>
-
-<style>
-.g-item {
-  padding: 12px 20px;
-  border-bottom: 0.5px solid rgba(255,255,255,0.04);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.g-item:hover { background: rgba(255,255,255,0.03); }
-.g-item-main  { font-size: 13px; color: #e2e8f0; margin-bottom: 2px; }
-.g-item-sub   { font-size: 11px; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.g-badge-row  { display: flex; align-items: center; gap: 8px; }
-.g-empty      { text-align: center; padding: 40px; color: #475569; font-size: 13px; }
-.g-tab.active { background: #334155 !important; color: #f1f5f9 !important; }
-</style>
 </body>
 </html>
